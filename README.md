@@ -105,7 +105,9 @@ Browser: http://localhost:5173
 ## Mobile
 ```bash
 cd mobile
-npm install
+npx create-expo-app
+npm install 
+npx expo start
 ```
 
 ## Or Docker
