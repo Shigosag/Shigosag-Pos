@@ -75,6 +75,9 @@ Shigosag-Pos/
 
 ## ⚡ Installation
 
+## Prerequisites
+- Node.js (v18+)
+
 ## Clone the repository
 ```bash
 git clone https://github.com/Shigosag/Shigosag-Pos.git
