@@ -1,5 +1,9 @@
 # 🚀 Shigosag POS
 
+[![TypeScript](https://img.shields.io/badge/typescript-5.x-blue)](https://www.typescriptlang.org/)  
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org/)  
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A modern, real-time POS (Point of Sale) system for web and mobile. Built with **React**, **TypeScript**, **Vite**, **Express**, **Prisma**, **PostgreSQL**, **Socket.IO**, and **Expo**.
 
 ---
