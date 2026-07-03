@@ -17,12 +17,13 @@ A modern, real-time POS (Point of Sale) system for web and mobile. Built with **
 </div>
 
 **Timestamps:**
-- **0:00** - BMS Refresh & Loading
-- **0:10** - Dashboard Light Mode Overview
-- **0:21** - Dashboard Dark Mode Overview
-- **0:36** - Menu Overview
-- **0:50** - GitHub Repository Overview
-- 
+- **0:00** - Dashboard Colored Mode Overview
+- **0:19** - Dashboard Light Mode Overview
+- **0:35** - Sidebar Overview
+- **1:15** - History Overview
+- **1:39** - Checkout Overview
+- **2:16** - GitHub Repository Overview
+
 ---
 
 ## ✨ Features
