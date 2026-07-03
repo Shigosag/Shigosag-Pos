@@ -6,9 +6,9 @@
 
 A modern, real-time POS (Point of Sale) system for web and mobile. Built with **React**, **TypeScript**, **Vite**, **Express**, **Prisma**, **PostgreSQL**, **Socket.IO**, and **Expo**.
 
-![POS Dashboard](screenshots/dashboard_light.png)
-![POS Dashboard](screenshots/dashboard_light2.png)
-![POS Dashboard](screenshots/dashboard_light3.png)
+| Light Mode | Colored Mode |
+| :---: | :---: |
+| ![POS Dashboard](screenshots/dashboard_light_mobile.png) | ![POS Dashboard](screenshots/dashboard_colored_mobile.png) |
 
 ### 🎥 System Walkthrough & Demo
 
