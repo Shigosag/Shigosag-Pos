@@ -6,6 +6,15 @@
 
 A modern, real-time POS (Point of Sale) system for web and mobile. Built with **React**, **TypeScript**, **Vite**, **Express**, **Prisma**, **PostgreSQL**, **Socket.IO**, and **Expo**.
 
+---
+
+## 🌐 Live Demo
+
+🚀 **Try Shigosag POS:**  
+https://shigosag-pos.up.railway.app
+
+---
+
 | Light Mode | Colored Mode |
 | :---: | :---: |
 | ![POS Dashboard](screenshots/dashboard_light_mobile.png) | ![POS Dashboard](screenshots/dashboard_colored_mobile.png) |
