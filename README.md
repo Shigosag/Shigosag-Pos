@@ -11,7 +11,7 @@ A modern, real-time POS (Point of Sale) system for web and mobile. Built with **
 ## 🌐 Live Demo
 
 🚀 **Try Shigosag POS:**  
-https://shigosag-pos.up.railway.app
+https://shigosag-pos.vercel.app
 
 ---
 
