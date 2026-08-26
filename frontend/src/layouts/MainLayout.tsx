@@ -20,7 +20,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     { icon: Home, label: "Dashboard", path: "/" },
     { icon: Package, label: "Products", path: "/products" },
     { icon: DollarSign, label: "Sales", path: "/sales" },
-    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" }
   ];
 
   return (
@@ -28,15 +28,17 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`bg-red-600 text-white flex flex-col p-5 transition-all duration-300 ${
-          open ? "w-64" : "w-16"
+        className={`bg-red-600 text-white flex flex-col transition-all duration-300 ${
+          open ? "w-64 p-5" : "w-16 p-3"
         }`}
       >
 
         {/* Toggle Button */}
         <button
           onClick={() => setOpen(!open)}
-          className="mb-6 text-white font-bold hover:bg-red-700 p-2 rounded-lg transition"
+          className={`mb-6 text-white font-bold hover:bg-red-700 p-2 rounded-lg transition flex items-center ${
+            open ? "justify-start" : "justify-center"
+          }`}
           aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
         >
           {open ? (
@@ -47,16 +49,18 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </button>
 
         {/* Logo */}
-        <div className="mb-8 flex items-center gap-2">
-          <ShoppingCart size={24} />
+        <div
+          className={`mb-8 flex items-center ${
+            open ? "gap-2" : "justify-center"
+          }`}
+        >
+          <ShoppingCart size={24} className="shrink-0" />
 
-          <span
-            className={`font-bold text-xl whitespace-nowrap transition-opacity duration-300 ${
-              open ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            Shigosag POS
-          </span>
+          {open && (
+            <span className="font-bold text-xl whitespace-nowrap">
+              Shigosag POS
+            </span>
+          )}
         </div>
 
         {/* Navigation */}
@@ -68,17 +72,20 @@ export default function MainLayout({ children }: { children: ReactNode }) {
               <div key={item.label} className="relative group">
                 <Link
                   to={item.path}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-red-700 transition-colors"
+                  className={`flex items-center p-2 rounded-lg hover:bg-red-700 transition-colors ${
+                    open ? "gap-3" : "justify-center"
+                  }`}
                 >
-                  <Icon size={21} />
+                  <Icon
+                    size={21}
+                    className="shrink-0"
+                  />
 
-                  <span
-                    className={`whitespace-nowrap transition-opacity duration-300 ${
-                      open ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    {item.label}
-                  </span>
+                  {open && (
+                    <span className="whitespace-nowrap">
+                      {item.label}
+                    </span>
+                  )}
                 </Link>
 
                 {/* Tooltip when collapsed */}
@@ -93,13 +100,11 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </nav>
 
         {/* Footer */}
-        <div
-          className={`mt-auto text-xs whitespace-nowrap transition-opacity duration-300 ${
-            open ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          Powered by Shigosag
-        </div>
+        {open && (
+          <div className="mt-auto text-xs">
+            Powered by Shigosag
+          </div>
+        )}
       </aside>
 
       {/* Main Content */}
