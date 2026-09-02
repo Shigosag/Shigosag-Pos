@@ -6,12 +6,12 @@ import MainLayout from "./layouts/MainLayout";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
+import BankTransfer from "./pages/POS/BankTransfer";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
 import Sales from "./pages/Sales";
 import Analytics from "./pages/Analytics";
 import Transfers from "./pages/Transfers";
-import BankTransfer from "./pages/POS/BankTransfer";
 import Withdraw from "./pages/Withdraw";
 import History from "./pages/History";
 import Airtime from "./pages/Airtime";
@@ -25,8 +25,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/pos/transfer" element={<BankTransfer />} />
           <Route path="/" element={<Dashboard />} />
+          <Route path="/pos/transfer" element={<BankTransfer />} />
           <Route path="/sales" element={<Sales />} />
           <Route path="/products" element={<Products />} />
           <Route path="/customers" element={<Customers />} />
