@@ -3,7 +3,7 @@ import { prisma } from "../config/db.js";
 import { io } from "../server.js";
 
 export const POSController = {
-  // Simulate Nigerian Bank Name Lookup
+  // Simulate Name Lookup
   verifyAccountNumber: async (req: Request, res: Response) => {
     const { accountNumber, bankCode } = req.body;
     
@@ -23,24 +23,30 @@ export const POSController = {
   },
 
   processTransfer: async (req: Request, res: Response) => {
-    const { amount, accountNumber, bankName, accountName } = req.body;
+    const { amount, accountNumber, bankName, accountName, userId } = req.body;
 
     try {
+      // Log the transaction
       const transaction = await prisma.transaction.create({
         data: {
           reference: `SHG-TX-${Math.floor(100000 + Math.random() * 900000)}`,
           type: "TRANSFER",
           amount: parseFloat(amount),
           recipientDetail: `${bankName} | ${accountNumber} | ${accountName}`,
-          status: "SUCCESS",
-          paymentMethod: "TRANSFER"
+          status: "SUCCESS"
         }
+      });
+
+      // ACTUALLY DEDUCT FROM BALANCE
+      await prisma.user.update({
+        where: { id: userId },
+        data: { balance: { decrement: parseFloat(amount) } }
       });
 
       io.emit("transaction:new", transaction);
       res.status(201).json(transaction);
     } catch (error) {
-      res.status(500).json({ error: "Transfer processing failed" });
+      res.status(500).json({ error: "Transfer failed" });
     }
   }
 };
