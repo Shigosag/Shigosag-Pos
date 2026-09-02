@@ -27,7 +27,7 @@ const distPath = path.join(__dirname, "../../frontend/dist");
 app.use(express.static(distPath));
 
 // 5. SPA Fallback
-app.get("(.*)", (req, res) => {
+app.get("*any", (req, res) => {
   if (!req.path.startsWith("/api")) {
     res.sendFile(path.join(distPath, "index.html"));
   }
