@@ -27,7 +27,8 @@ enum TransactionStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id      String @id @default(cuid())
+  balance Float  @default(10000000.00) // Start with 10M
   email     String   @unique
   password  String
   name      String
