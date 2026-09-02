@@ -1,183 +1,94 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer
-} from "recharts";
-
-const socket = io("http://localhost:5000");
+import { Wallet, ArrowUpRight, ArrowDownLeft, Users, Package, History as HistoryIcon } from "lucide-react";
 
 export default function Dashboard() {
-  const [liveFeed, setLiveFeed] = useState<any[]>([]);
-  const [coloredMode, setColoredMode] = useState(true); // toggle mode
+  const [stats, setStats] = useState({
+    balance: 25783.50,
+    dailyInflow: 4200.00,
+    dailyOutflow: 1150.00,
+    activeUsers: 12
+  });
 
-  const data = [
-    { name: "Mon", sales: 1200 },
-    { name: "Tue", sales: 2100 },
-    { name: "Wed", sales: 1800 },
-    { name: "Thu", sales: 2400 },
-    { name: "Fri", sales: 3200 }
-  ];
-
-  useEffect(() => {
-    socket.on("transaction:new", (tx) => {
-      setLiveFeed((prev) => [tx, ...prev.slice(0, 4)]);
-    });
-    return () => socket.disconnect();
-  }, []);
-
-  const cards = [
-    { title: "POS Sales", icon: "🛒", path: "/sales", color: "from-red-500 to-red-600", description: "Process customer sales" },
-    { title: "Products", icon: "📦", path: "/products", color: "from-blue-500 to-blue-600", description: "Manage inventory" },
-    { title: "Customers", icon: "👥", path: "/customers", color: "from-purple-500 to-purple-600", description: "Customer management" },
-    { title: "Transfers", icon: "💸", path: "/transfers", color: "from-green-500 to-green-600", description: "Send money" },
-    { title: "Withdraw", icon: "🏧", path: "/withdraw", color: "from-yellow-500 to-orange-500", description: "Cash withdrawal" },
-    { title: "History", icon: "📜", path: "/history", color: "from-gray-700 to-gray-900", description: "Transaction history" },
-    { title: "Airtime", icon: "📱", path: "/airtime", color: "from-pink-500 to-pink-600", description: "Recharge airtime" },
-    { title: "Data", icon: "📶", path: "/data", color: "from-indigo-500 to-indigo-600", description: "Buy data plans" },
-    { title: "Balance", icon: "💰", path: "/balance", color: "from-teal-500 to-teal-600", description: "Check account balance" },
-    { title: "Analytics", icon: "📊", path: "/analytics", color: "from-slate-600 to-slate-800", description: "Reports & insights" }
-  ];
+  // Dynamic Status Color Logic
+  const getStatusColor = (val: number) => val >= 0 ? "text-emerald-600" : "text-red-600";
 
   return (
-    <div>
-      {/* Header + iOS-Style Mode Toggle */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">🚀 Shigosag POS</h1>
-          <p className="text-gray-500 mt-2">Real-time fintech dashboard system</p>
-        </div>
-
-        {/* Toggle Switch */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-600">
-            {coloredMode ? "Colored Mode" : "Normal Mode"}
-          </span>
-          <button
-            onClick={() => setColoredMode(!coloredMode)}
-            className={`relative w-14 h-8 rounded-full transition-all duration-300 ${
-              coloredMode ? "bg-gradient-to-r from-red-500 to-red-600" : "bg-gray-300"
-            }`}
-          >
-            <div
-              className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 ${
-                coloredMode ? "left-7" : "left-1"
-              }`}
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* System Status */}
-      <div className="bg-red-600 text-white rounded-xl shadow p-4 mb-6 flex justify-between items-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-        <div>
-          <h3 className="font-semibold">System Status</h3>
-          <p className="text-sm opacity-90">All POS services operational</p>
-        </div>
-        <div className="text-lg font-bold">🟢 Online</div>
-      </div>
-
-      {/* Available Balance */}
-      <div className="bg-white p-5 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 mb-4">
-        <p className="text-gray-500 text-sm">Available Balance</p>
-        <p className="text-2xl font-bold">$25,783.50</p>
-      </div>
-
-      {/* Quick Actions */}
-      <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-5 mb-8">
-        {cards.map((card) => (
-          <Link
-            key={card.title}
-            to={card.path}
-            className={`p-5 rounded-xl shadow hover:shadow-xl transform transition-all duration-300 ${
-              coloredMode
-                ? `bg-gradient-to-r ${card.color} text-white`
-                : "bg-white text-gray-800 border border-gray-200"
-            }`}
-          >
-            <div className="text-3xl">{card.icon}</div>
-            <div className="font-bold mt-2">{card.title}</div>
-            <p className="text-sm mt-1">{card.description}</p>
-          </Link>
-        ))}
-      </div>
-
-      {/* Sales Chart */}
-      <div className="bg-white p-5 rounded-2xl shadow mt-8">
-        <h2 className="font-semibold mb-4">📊 Sales Analytics</h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={data}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="sales" stroke="#ef4444" strokeWidth={3} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-        {[
-          { label: "Sales", value: "$12,540" },
-          { label: "Transactions", value: "124" },
-          { label: "Customers", value: "2,381" },
-          { label: "Status", value: "LIVE 🟢" }
-        ].map((s, i) => (
-          <div
-            key={i}
-            className="bg-white p-5 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-          >
-            <p className="text-gray-500 text-sm">{s.label}</p>
-            <p className="text-2xl font-bold">{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Live Sales Feed */}
-      <div className="mt-10 bg-white rounded-xl shadow p-5">
-        <h2 className="text-xl font-semibold mb-4">Live Sales Feed</h2>
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          <div className="border-b pb-2 animate-pulse">🛒 New sale completed</div>
-          <div className="border-b pb-2 animate-pulse">📦 Product stock updated</div>
-          <div className="border-b pb-2 animate-pulse">👥 New customer added</div>
-          <div className="animate-pulse">💸 Transfer processed</div>
-        </div>
-      </div>
-
-      {/* Live Transactions & History */}
-      <div className="grid md:grid-cols-2 gap-5 mt-8">
-        {/* Live Transactions */}
-        <div className="bg-white p-5 rounded-2xl shadow">
-          <h2 className="font-semibold mb-3">🔴 Live Transactions</h2>
-          <div className="space-y-2 text-sm">
-            {liveFeed.length === 0 && <p className="text-gray-400">Waiting for activity...</p>}
-            {liveFeed.map((tx, i) => (
-              <div key={i} className="flex justify-between border-b pb-2">
-                <span>🛒 {tx.type || "Sale"}</span>
-                <span className="text-green-500">${tx.amount || "0"}</span>
-              </div>
-            ))}
+    <div className="space-y-8">
+      {/* Dynamic Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-red-100 text-red-600 rounded-2xl"><Wallet /></div>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Main Balance</p>
+            <h3 className="text-2xl font-bold">₦{stats.balance.toLocaleString()}</h3>
           </div>
         </div>
 
-        {/* History Panel */}
-        <div className="bg-white p-5 rounded-2xl shadow">
-          <h2 className="font-semibold mb-3">📜 Transaction History</h2>
-          <p className="text-gray-500 text-sm mb-4">
-            View withdrawals, transfers & payments history
-          </p>
-          <Link
-            to="/history"
-            className="inline-block bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
-          >
-            Open History
-          </Link>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl"><ArrowUpRight /></div>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Today's Inflow</p>
+            <h3 className={`text-2xl font-bold ${getStatusColor(stats.dailyInflow)}`}>
+              +₦{stats.dailyInflow.toLocaleString()}
+            </h3>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl"><ArrowDownLeft /></div>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Today's Outflow</p>
+            <h3 className="text-2xl font-bold text-orange-600">-₦{stats.dailyOutflow.toLocaleString()}</h3>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl"><Users /></div>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Customers</p>
+            <h3 className="text-2xl font-bold">2,381</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: POS Actions + Recent Transactions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <h2 className="text-xl font-bold text-gray-800">Quick Services</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Link to="/pos/transfer" className="p-6 bg-red-600 text-white rounded-3xl hover:bg-red-700 transition shadow-lg shadow-red-200 flex flex-col items-center gap-3">
+              <Landmark size={32} />
+              <span className="font-bold">Bank Transfer</span>
+            </Link>
+            <Link to="/sales" className="p-6 bg-white border border-gray-100 rounded-3xl hover:shadow-md transition flex flex-col items-center gap-3 text-gray-700">
+              <Package size={32} className="text-red-600" />
+              <span className="font-bold">Inventory Sale</span>
+            </Link>
+            <Link to="/airtime" className="p-6 bg-white border border-gray-100 rounded-3xl hover:shadow-md transition flex flex-col items-center gap-3 text-gray-700">
+              <Phone size={32} className="text-emerald-600" />
+              <span className="font-bold">Airtime/Data</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="font-bold text-gray-800">Live Feed</h2>
+            <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full animate-pulse">LIVE</span>
+          </div>
+          <div className="space-y-4">
+             {/* Dynamic items generated via Socket.IO would map here */}
+             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
+               <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold">₦</div>
+               <div className="flex-1">
+                 <p className="text-sm font-bold">Transfer Received</p>
+                 <p className="text-xs text-gray-500">Zenith Bank • 2 mins ago</p>
+               </div>
+               <p className="font-bold text-emerald-600">+₦5,000</p>
+             </div>
+          </div>
         </div>
       </div>
     </div>
