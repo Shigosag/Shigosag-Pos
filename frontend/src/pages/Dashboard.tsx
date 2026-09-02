@@ -2,13 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
 import { Wallet, ArrowUpRight, ArrowDownLeft, Users, Package, History as HistoryIcon } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
 
 export default function Dashboard() {
+  const user = useAuthStore((s) => s.user);
+  
   const [stats] = useState({
-    balance: 10000000, // 10M balance
+    balance: user?.balance || 10000000, // Use real user balance
     dailyInflow: 0,
     dailyOutflow: 0,
-    activeUsers: 12
+    activeUsers: 1
   });
 
   // Calculate formatted strings here
