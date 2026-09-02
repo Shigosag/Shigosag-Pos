@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import productRoutes from "./routes/productRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import posRoutes from "./routes/posRoutes.js";
 
 export const app = express();
 app.use(cors());
@@ -9,6 +11,8 @@ app.use(helmet());
 app.use(express.json());
 
 app.use("/api/products", productRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/pos", posRoutes);
 
 app.get("/health", (_, res) => res.json({ status: "ok" }));
 
