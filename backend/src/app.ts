@@ -12,7 +12,16 @@ export const app = express();
 
 // 2. Middleware
 app.use(cors());
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "script-src": ["'self'", "'unsafe-inline'", "cdn.tailwindcss.com"],
+      },
+    },
+  })
+);
 app.use(express.json());
 
 // 3. API Routes
