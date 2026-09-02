@@ -14,7 +14,8 @@ export default function Dashboard() {
   // Calculate formatted strings here
   const formattedBalance = stats.balance.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
   const formattedInflow = stats.dailyInflow.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
-
+  const formattedOutflow = stats.dailyOutflow.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+  
   // Dynamic Status Color Logic
   const getStatusColor = (val: number) => val >= 0 ? "text-emerald-600" : "text-red-600";
 
@@ -26,7 +27,7 @@ export default function Dashboard() {
           <div className="p-3 bg-red-100 text-red-600 rounded-2xl"><Wallet /></div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Main Balance</p>
-            <h3 className="text-2xl font-bold">₦{stats.balance.toLocaleString()}</h3>
+            <h3 className="text-2xl font-bold">{formattedBalance}</h3>
           </div>
         </div>
 
@@ -35,7 +36,7 @@ export default function Dashboard() {
           <div>
             <p className="text-sm text-gray-500 font-medium">Today's Inflow</p>
             <h3 className={`text-2xl font-bold ${getStatusColor(stats.dailyInflow)}`}>
-              +₦{stats.dailyInflow.toLocaleString()}
+              +{formattedInflow}
             </h3>
           </div>
         </div>
@@ -44,7 +45,7 @@ export default function Dashboard() {
           <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl"><ArrowDownLeft /></div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Today's Outflow</p>
-            <h3 className="text-2xl font-bold text-orange-600">-₦{stats.dailyOutflow.toLocaleString()}</h3>
+            <h3 className="text-2xl font-bold text-orange-600">-{formattedOutflow}</h3>
           </div>
         </div>
 
