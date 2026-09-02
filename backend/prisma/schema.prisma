@@ -7,18 +7,73 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  CASHIER
+}
+
+enum TransactionType {
+  SALE
+  TRANSFER
+  AIRTIME
+  DATA
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CASHIER)
+  createdAt DateTime @default(now())
+  sales     Sale[]
+}
+
 model Product {
   id        String   @id @default(cuid())
   name      String
   price     Float
   stock     Int
   barcode   String?  @unique
+  category  String   @default("General")
+  isArchived Boolean @default(false)
   createdAt DateTime @default(now())
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?  @unique
+  email     String?
+  debt      Float    @default(0)
+  transactions Transaction[]
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  reference       String            @unique // SHG-POS-XXXXX
+  type            TransactionType
+  amount          Float
+  status          TransactionStatus @default(SUCCESS)
+  paymentMethod   String            @default("CASH") // CASH, TRANSFER, CARD
+  recipientDetail String?           // Account number, Phone number, or Bank name
+  customerId      String?
+  customer        Customer?         @relation(fields: [customerId], references: [id])
+  createdAt       DateTime          @default(now())
 }
 
 model Sale {
   id        String   @id @default(cuid())
   total     Float
-  items     String
+  items     Json     // Array of items sold
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 }
