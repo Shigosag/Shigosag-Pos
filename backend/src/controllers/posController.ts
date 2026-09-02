@@ -23,10 +23,11 @@ export const POSController = {
   },
 
   processTransfer: async (req: Request, res: Response) => {
-    const { amount, accountNumber, bankName, accountName, userId } = req.body;
+    const { amount, accountNumber, bankName, accountName } = req.body;
+    
+    const userId = (req as any).user?.userId; 
 
     try {
-      // Log the transaction
       const transaction = await prisma.transaction.create({
         data: {
           reference: `SHG-TX-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -37,7 +38,7 @@ export const POSController = {
         }
       });
 
-      // ACTUALLY DEDUCT FROM BALANCE
+      // Deduct from the authenticated user's balance
       await prisma.user.update({
         where: { id: userId },
         data: { balance: { decrement: parseFloat(amount) } }
@@ -46,7 +47,7 @@ export const POSController = {
       io.emit("transaction:new", transaction);
       res.status(201).json(transaction);
     } catch (error) {
-      res.status(500).json({ error: "Transfer failed" });
+      res.status(500).json({ error: "Transfer failed. Check if you are logged in." });
     }
   }
 };
