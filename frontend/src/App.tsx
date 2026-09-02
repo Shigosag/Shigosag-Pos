@@ -1,8 +1,7 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import MainLayout from "./layouts/MainLayout";
-import { Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
 
 import Login from "./pages/Auth/Login";
@@ -20,20 +19,30 @@ import Airtime from "./pages/Airtime";
 import Data from "./pages/Data";
 import Balance from "./pages/Balance";
 
-export default function App() {
+// Wrapper: Checks login and only attaches the Sidebar to protected pages
+function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);
+  if (!user) return <Navigate to="/login" replace />;
+  return (
+    <MainLayout>
+      <Outlet />
+    </MainLayout>
+  );
+}
+
+export default function App() {
   return (
     <BrowserRouter>
-      <MainLayout>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+      <Routes>
+        {/* PUBLIC PAGES: Pure full-screen card, no sidebar */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes - Redirect to login if user is null */}
-          <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
-          <Route path="/pos/transfer" element={user ? <BankTransfer /> : <Navigate to="/login" />} />
-          <Route path="/history" element={user ? <History /> : <Navigate to="/login" />} />
-          
+        {/* PROTECTED PAGES: Wrapped inside Sidebar + Top Header */}
+        <Route element={<ProtectedLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/pos/transfer" element={<BankTransfer />} />
+          <Route path="/history" element={<History />} />
           <Route path="/sales" element={<Sales />} />
           <Route path="/products" element={<Products />} />
           <Route path="/customers" element={<Customers />} />
@@ -43,8 +52,8 @@ export default function App() {
           <Route path="/airtime" element={<Airtime />} />
           <Route path="/data" element={<Data />} />
           <Route path="/balance" element={<Balance />} />
-        </Routes>
-      </MainLayout>
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }
