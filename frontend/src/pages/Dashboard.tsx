@@ -4,12 +4,16 @@ import { io } from "socket.io-client";
 import { Wallet, ArrowUpRight, ArrowDownLeft, Users, Package, History as HistoryIcon } from "lucide-react";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    balance: 25783.50,
-    dailyInflow: 4200.00,
-    dailyOutflow: 1150.00,
+  const [stats] = useState({
+    balance: 10000000, // 10M balance
+    dailyInflow: 0,
+    dailyOutflow: 0,
     activeUsers: 12
   });
+
+  // Calculate formatted strings here
+  const formattedBalance = stats.balance.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+  const formattedInflow = stats.dailyInflow.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
 
   // Dynamic Status Color Logic
   const getStatusColor = (val: number) => val >= 0 ? "text-emerald-600" : "text-red-600";
