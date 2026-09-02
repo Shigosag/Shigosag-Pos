@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../../api/api";
 import { CheckCircle, Loader2, Landmark, Receipt, Wallet } from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
 
 export default function BankTransfer() {
   const [step, setStep] = useState(1);
