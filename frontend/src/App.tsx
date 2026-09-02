@@ -2,6 +2,8 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import MainLayout from "./layouts/MainLayout";
+import { Navigate } from "react-router-dom";
+import { useAuthStore } from "./store/authStore";
 
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
@@ -19,12 +21,19 @@ import Data from "./pages/Data";
 import Balance from "./pages/Balance";
 
 export default function App() {
+  const user = useAuthStore((s) => s.user);
   return (
     <BrowserRouter>
       <MainLayout>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Protected Routes - Redirect to login if user is null */}
+          <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+          <Route path="/pos/transfer" element={user ? <BankTransfer /> : <Navigate to="/login" />} />
+          <Route path="/history" element={user ? <History /> : <Navigate to="/login" />} />
+          
           <Route path="/" element={<Dashboard />} />
           <Route path="/pos/transfer" element={<BankTransfer />} />
           <Route path="/sales" element={<Sales />} />
