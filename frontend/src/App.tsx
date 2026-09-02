@@ -11,6 +11,7 @@ import Customers from "./pages/Customers";
 import Sales from "./pages/Sales";
 import Analytics from "./pages/Analytics";
 import Transfers from "./pages/Transfers";
+import BankTransfer from "./pages/POS/BankTransfer";
 import Withdraw from "./pages/Withdraw";
 import History from "./pages/History";
 import Airtime from "./pages/Airtime";
