@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
-import { Wallet, ArrowUpRight, ArrowDownLeft, Users, Package, History as HistoryIcon } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, Users, Package, History as HistoryIcon, Landmark, Phone } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 
 export default function Dashboard() {
