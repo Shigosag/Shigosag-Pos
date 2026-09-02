@@ -33,18 +33,21 @@ export default function BankTransfer() {
     }
   };
 
-  const handleProcess = async () => {
-    if (!form.amount || Number(form.amount) <= 0) return alert("Enter valid amount");
-    setLoading(true);
-    try {
-      await api.post("/pos/process-transfer", form);
-      setStep(3);
-    } catch (err) {
-      setStep(3); // Demo Success
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleProcess = async () => {
+  if (!form.amount || Number(form.amount) <= 0) return alert("Enter valid amount");
+  setLoading(true);
+  try {
+    await api.post("/pos/process-transfer", { 
+      ...form, 
+      userId: user.id 
+    });
+    setStep(3);
+  } catch (err) {
+    setStep(3); // Demo Success
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
