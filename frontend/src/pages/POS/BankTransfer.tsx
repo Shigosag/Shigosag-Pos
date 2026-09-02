@@ -5,10 +5,11 @@ import { CheckCircle, Loader2, Landmark, Receipt, Wallet } from "lucide-react";
 export default function BankTransfer() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [balance] = useState(10000000); // 10M Balance
+  const user = useAuthStore((s) => s.user);
+  const balance = user?.balance || 10000000;
   const [form, setForm] = useState({
     accountNumber: "",
-    bank: "Zenith Bank",
+    bank: "First Bank of Nigeria",
     amount: "",
     accountName: ""
   });
