@@ -34,15 +34,12 @@ export default function App() {
           <Route path="/pos/transfer" element={user ? <BankTransfer /> : <Navigate to="/login" />} />
           <Route path="/history" element={user ? <History /> : <Navigate to="/login" />} />
           
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/pos/transfer" element={<BankTransfer />} />
           <Route path="/sales" element={<Sales />} />
           <Route path="/products" element={<Products />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/transfers" element={<Transfers />} />
           <Route path="/withdraw" element={<Withdraw />} />
-          <Route path="/history" element={<History />} />
           <Route path="/airtime" element={<Airtime />} />
           <Route path="/data" element={<Data />} />
           <Route path="/balance" element={<Balance />} />
