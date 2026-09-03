@@ -1,121 +1,132 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
-  Rocket, Wallet, ArrowUpRight, ArrowDownLeft, Users, 
+  Rocket, Wallet, Eye, EyeOff, Users, 
   Package, Landmark, History, Smartphone, Signal, 
-  BarChart3, CreditCard 
+  BarChart3, CreditCard, TrendingUp, ShieldCheck
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useAuthStore } from "../store/authStore";
+import { formatCurrency } from "../utils/format";
 
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
-  const [coloredMode, setColoredMode] = useState(true);
-
-  const stats = {
-    balance: user?.balance || 10000000,
-    inflow: 4200,
-    outflow: 1150
-  };
+  const [showBalance, setShowBalance] = useState(true);
 
   const chartData = [
-    { name: "Mon", sales: 1200 }, { name: "Tue", sales: 2100 }, { name: "Wed", sales: 1800 },
-    { name: "Thu", sales: 2400 }, { name: "Fri", sales: 3200 }
+    { name: "Mon", sales: 4200 }, { name: "Tue", sales: 5100 }, { name: "Wed", sales: 3800 },
+    { name: "Thu", sales: 6400 }, { name: "Fri", sales: 7200 }, { name: "Sat", sales: 8100 }, { name: "Sun", sales: 5900 }
   ];
 
-  const cards = [
-    { title: "POS Sales", icon: <CreditCard size={28}/>, path: "/sales", color: "from-red-500 to-red-600", desc: "Process sales" },
-    { title: "Products", icon: <Package size={28}/>, path: "/products", color: "from-blue-500 to-blue-600", desc: "Inventory" },
-    { title: "Customers", icon: <Users size={28}/>, path: "/customers", color: "from-purple-500 to-purple-600", desc: "User logs" },
-    { title: "Transfers", icon: <Landmark size={28}/>, path: "/pos/transfer", color: "from-emerald-500 to-emerald-600", desc: "Send money" },
-    { title: "Withdraw", icon: <Wallet size={28}/>, path: "/withdraw", color: "from-orange-500 to-orange-600", desc: "Cash out" },
-    { title: "History", icon: <History size={28}/>, path: "/history", color: "from-slate-700 to-slate-900", desc: "Audit logs" },
-    { title: "Airtime", icon: <Smartphone size={28}/>, path: "/airtime", color: "from-pink-500 to-pink-600", desc: "Top up" },
-    { title: "Data", icon: <Signal size={28}/>, path: "/data", color: "from-blue-600 to-blue-700", desc: "Internet" },
-    { title: "Balance", icon: <Landmark size={28}/>, path: "/balance", color: "from-teal-500 to-teal-600", desc: "Statements" },
-    { title: "Analytics", icon: <BarChart3 size={28}/>, path: "/analytics", color: "from-indigo-800 to-slate-900", desc: "Insights" }
+  const quickActions = [
+    { title: "New Sale", icon: <CreditCard />, path: "/sales", color: "bg-indigo-600", desc: "Start transaction" },
+    { title: "Transfer", icon: <Landmark />, path: "/pos/transfer", color: "bg-violet-600", desc: "Bank transfer" },
+    { title: "Inventory", icon: <Package />, path: "/products", color: "bg-blue-600", desc: "Stock management" },
+    { title: "Customers", icon: <Users />, path: "/customers", color: "bg-teal-600", desc: "CRM logs" },
   ];
-
-  const format = (val: number) => val.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100">
-            <Rocket size={32} />
-          </div>
-          <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight tracking-tighter">Shigosag POS</h1>
-            <p className="text-gray-500 font-medium">Institutional Terminal</p>
-          </div>
-        </div>
-
-        {/* FIXED TOGGLE COMPONENT */}
-        <button 
-          onClick={() => setColoredMode(!coloredMode)}
-          className={`flex items-center gap-3 px-4 py-2 rounded-2xl font-bold text-[10px] transition-all border ${
-            coloredMode ? "bg-indigo-50 text-indigo-600 border-indigo-100" : "bg-white text-gray-400 border-gray-100"
-          }`}
-        >
-          {coloredMode ? "COLORED" : "LIGHT"}
-          <div className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${coloredMode ? "bg-indigo-600" : "bg-gray-200"}`}>
-            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm ${coloredMode ? "translate-x-7" : "translate-x-1"}`} />
-          </div>
-        </button>
-      </div>
-
-      {/* Main Balance Card (Institutional Green) */}
-      <div className="bg-emerald-50 p-8 rounded-[32px] border border-emerald-100 flex justify-between items-center shadow-sm">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Available Balance</p>
-          <h2 className="text-5xl font-black text-emerald-900">{format(stats.balance)}</h2>
+          <h1 className="text-2xl font-black text-slate-900">Welcome, {user?.name.split(' ')[0]} 👋</h1>
+          <p className="text-slate-500 font-medium text-sm">Terminal ID: #SHG-882-POS</p>
         </div>
-        <div className="w-16 h-16 bg-emerald-500 text-white rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-200">
-          <Wallet size={32} />
+        <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100">
+          <ShieldCheck className="text-indigo-600" size={20} />
+          <span className="text-indigo-700 font-bold text-xs">System Secure</span>
         </div>
       </div>
 
-      {/* Cards maintain variety, frame uses Indigo */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
-        {cards.map((card) => (
-          <Link key={card.title} to={card.path}
-            className={`p-6 rounded-[28px] transition-all transform hover:-translate-y-1 shadow-sm hover:shadow-xl ${
-              coloredMode ? `bg-gradient-to-br ${card.color} text-white` : "bg-white border border-gray-100 text-gray-800"
-            }`}
-          >
-            <div className={`mb-4 ${coloredMode ? "text-white/90" : "text-indigo-600"}`}>{card.icon}</div>
-            <div className="font-black text-base leading-tight">{card.title}</div>
-            <p className={`text-[11px] mt-1 font-medium ${coloredMode ? "text-white/70" : "text-gray-400"}`}>{card.desc}</p>
+      {/* Main Balance Card (Glassmorphism Indigo) */}
+      <div className="relative overflow-hidden bg-indigo-700 rounded-[32px] p-8 text-white shadow-2xl shadow-indigo-200">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 opacity-80">
+              <Wallet size={18} />
+              <span className="text-xs font-bold uppercase tracking-widest">Available Balance</span>
+            </div>
+            <button onClick={() => setShowBalance(!showBalance)} className="p-2 hover:bg-white/10 rounded-xl transition">
+              {showBalance ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight">
+            {showBalance ? formatCurrency(user?.balance || 0) : "₦ ••••••••"}
+          </h2>
+          <div className="mt-8 flex items-center gap-6">
+            <div>
+              <p className="text-[10px] uppercase font-bold opacity-60">Daily Inflow</p>
+              <p className="font-bold">+ ₦240,500.00</p>
+            </div>
+            <div className="w-[1px] h-8 bg-white/20"></div>
+            <div>
+              <p className="text-[10px] uppercase font-bold opacity-60">Daily Outflow</p>
+              <p className="font-bold">- ₦12,000.00</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Action Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {quickActions.map((action) => (
+          <Link key={action.title} to={action.path} className="group bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all">
+            <div className={`${action.color} w-12 h-12 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
+              {action.icon}
+            </div>
+            <h3 className="font-bold text-slate-800">{action.title}</h3>
+            <p className="text-xs text-slate-400 mt-1">{action.desc}</p>
           </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
-          <h3 className="font-black text-gray-900 text-xl mb-8">Performance</h3>
-          <div className="h-[250px]">
+        {/* Chart */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="font-black text-slate-900 text-lg">Sales Analytics</h3>
+            <select className="bg-slate-50 border-none rounded-xl text-xs font-bold px-4 py-2 outline-none">
+              <option>Last 7 Days</option>
+              <option>Last 30 Days</option>
+            </select>
+          </div>
+          <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
-                <Tooltip contentStyle={{borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'}} />
-                <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={5} dot={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                <YAxis hide />
+                <Tooltip 
+                  contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px'}} 
+                />
+                <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={4} dot={{r: 4, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 6}} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-indigo-900 p-8 rounded-[32px] text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
-           {/* Flower Blobs in Mini Stats Card */}
-           <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-50"></div>
-           <div className="relative z-10">
-              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">Today's Inflow</p>
-              <h4 className="text-3xl font-black">{format(stats.inflow)}</h4>
-           </div>
-           <div className="relative z-10 pt-6 border-t border-indigo-800">
-              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">System Health</p>
-              <h4 className="text-xl font-black flex items-center gap-2"><div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"/> Operational</h4>
-           </div>
+        {/* System Logs / Recent */}
+        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+          <h3 className="font-black text-slate-900 text-lg mb-6">Live Terminal Feed</h3>
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <TrendingUp size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-slate-800 truncate">Sale #82109</p>
+                  <p className="text-[10px] text-slate-400 font-medium">2 mins ago • Card Payment</p>
+                </div>
+                <p className="text-sm font-black text-emerald-600">+₦12.5k</p>
+              </div>
+            ))}
+          </div>
+          <Link to="/history" className="block w-full text-center mt-6 py-3 text-indigo-600 font-bold text-sm hover:bg-indigo-50 rounded-2xl transition">
+            View All Logs
+          </Link>
         </div>
       </div>
     </div>
