@@ -1,13 +1,14 @@
 import React, { useState } from "react";
+import { CheckCircle2, CreditCard, X, Printer } from "lucide-react";
+import { formatCurrency } from "../utils/format";
 
 export default function CheckoutModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState<number>(120); // default demo amount
+  const [amount, setAmount] = useState<number>(12500); 
 
   const handlePay = () => {
     setLoading(true);
-
     setTimeout(() => {
       setLoading(false);
       setStep("success");
@@ -15,97 +16,73 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-white w-[420px] rounded-2xl shadow-2xl p-6 relative">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white w-full max-w-[420px] rounded-[32px] shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
         
-        {/* CLOSE */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black"
-        >
-          ✕
+        <button onClick={onClose} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition">
+          <X size={20} />
         </button>
 
-        {/* TITLE */}
-        <h2 className="text-xl font-bold mb-4">💳 Secure Checkout</h2>
+        <div className="flex items-center gap-3 mb-8">
+           <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+              <CreditCard size={20} />
+           </div>
+           <h2 className="text-xl font-black text-slate-900">Secure Checkout</h2>
+        </div>
 
-        {/* FORM STEP */}
         {step === "form" && (
-          <>
-            <div className="space-y-3">
-
-              {/* AMOUNT INPUT (NEW) */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Amount</label>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                placeholder="Enter amount"
-                className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-              />
-
-              <input
-                placeholder="Card Number"
-                className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-              />
-
-              <div className="flex gap-3">
-                <input
-                  placeholder="MM/YY"
-                  className="w-1/2 border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-                />
-                <input
-                  placeholder="CVC"
-                  className="w-1/2 border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
-                />
-              </div>
-
-              <input
-                placeholder="Cardholder Name"
-                className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full bg-slate-50 border-none p-4 rounded-2xl text-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1"
               />
             </div>
 
-            {/* PAY BUTTON */}
+            <div className="space-y-3">
+              <input placeholder="Card Number" className="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+              <div className="flex gap-3">
+                <input placeholder="MM/YY" className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                <input placeholder="CVC" className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+              </div>
+            </div>
+
             <button
               onClick={handlePay}
               disabled={loading}
-              className="mt-5 w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition"
+              className="mt-4 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
             >
-              {loading ? "Processing..." : `Pay $${amount.toFixed(2)}`}
+              {loading ? "Processing..." : `Pay ${formatCurrency(amount)}`}
             </button>
-          </>
+          </div>
         )}
 
-        {/* SUCCESS STEP */}
         {step === "success" && (
-          <div className="text-center py-6 animate-fadeIn">
-            
-            <div className="mx-auto w-20 h-20 rounded-full bg-green-100 flex items-center justify-center animate-bounce">
-              <span className="text-green-600 text-4xl">✔</span>
+          <div className="text-center py-4 animate-in fade-in slide-in-from-bottom-4">
+            <div className="mx-auto w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-6">
+              <CheckCircle2 className="text-emerald-500" size={40} />
             </div>
 
-            <h3 className="text-xl font-bold mt-4 text-green-600">
-              Payment Successful
-            </h3>
+            <h3 className="text-2xl font-black text-slate-900">Payment Confirmed</h3>
+            <p className="text-slate-500 mt-2 font-medium">Transaction was successful</p>
 
-            <p className="text-gray-500 mt-2">
-              Transaction completed successfully
-            </p>
-
-            {/* RECEIPT */}
-            <div className="mt-4 text-sm bg-gray-50 p-3 rounded-lg text-left">
-              <p>🧾 Receipt</p>
-              <p>Ref: SHG-{Math.floor(Math.random() * 999999)}</p>
-              <p>Amount: ${amount.toFixed(2)}</p>
-              <p>Status: Paid</p>
+            <div className="mt-8 text-sm bg-slate-50 p-6 rounded-[24px] text-left space-y-2 border border-slate-100">
+              <div className="flex justify-between"><span className="text-slate-400 font-bold">Reference:</span> <span className="font-mono font-bold text-slate-700 uppercase">SHG-{Math.floor(Math.random() * 999999)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400 font-bold">Amount:</span> <span className="font-black text-indigo-600">{formatCurrency(amount)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400 font-bold">Date:</span> <span className="font-bold text-slate-700">{new Date().toLocaleDateString()}</span></div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="mt-5 w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition"
-            >
-              Done
-            </button>
+            <div className="flex gap-3 mt-8">
+              <button onClick={() => window.print()} className="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition">
+                <Printer size={18} /> Receipt
+              </button>
+              <button onClick={onClose} className="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+                Done
+              </button>
+            </div>
           </div>
         )}
       </div>

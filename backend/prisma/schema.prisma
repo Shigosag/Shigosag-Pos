@@ -24,57 +24,73 @@ enum TransactionStatus {
   PENDING
   SUCCESS
   FAILED
+  REVERSED
 }
 
 model User {
-  id      String @id @default(cuid())
-  balance Float  @default(10000000.00) // Start with 10M
+  id        String   @id @default(cuid())
   email     String   @unique
   password  String
   name      String
   role      Role     @default(CASHIER)
+  balance   Float    @default(10000000.00)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   sales     Sale[]
+
+  @@index([email])
 }
 
 model Product {
-  id        String   @id @default(cuid())
-  name      String
-  price     Float
-  stock     Int
-  barcode   String?  @unique
-  category  String   @default("General")
-  isArchived Boolean @default(false)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  price       Float
+  stock       Int
+  barcode     String?  @unique
+  category    String   @default("General")
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([barcode])
+  @@index([name])
 }
 
 model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String?  @unique
-  email     String?
-  debt      Float    @default(0)
+  id           String        @id @default(cuid())
+  name         String
+  phone        String?       @unique
+  email        String?
+  debt         Float         @default(0)
   transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Transaction {
   id              String            @id @default(cuid())
-  reference       String            @unique // SHG-POS-XXXXX
+  reference       String            @unique
   type            TransactionType
   amount          Float
   status          TransactionStatus @default(SUCCESS)
-  paymentMethod   String            @default("CASH") // CASH, TRANSFER, CARD
-  recipientDetail String?           // Account number, Phone number, or Bank name
+  paymentMethod   String            @default("CASH")
+  recipientDetail String?
   customerId      String?
   customer        Customer?         @relation(fields: [customerId], references: [id])
   createdAt       DateTime          @default(now())
+
+  @@index([reference])
+  @@index([createdAt])
 }
 
 model Sale {
   id        String   @id @default(cuid())
   total     Float
-  items     Json     // Array of items sold
+  items     Json     
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

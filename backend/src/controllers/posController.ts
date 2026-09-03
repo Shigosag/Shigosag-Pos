@@ -3,20 +3,13 @@ import { prisma } from "../config/db.js";
 import { io } from "../server.js";
 
 export const POSController = {
-  // Simulate Name Lookup
   verifyAccountNumber: async (req: Request, res: Response) => {
-    const { accountNumber, bankCode } = req.body;
-    
-    // Simulate API delay (like Paystack/Flutterwave)
+    const { accountNumber } = req.body;
     await new Promise(resolve => setTimeout(resolve, 800));
+    if (accountNumber.length !== 10) return res.status(400).json({ error: "Invalid NUBAN" });
 
-    if (accountNumber.length !== 10) {
-      return res.status(400).json({ error: "Invalid NUBAN length" });
-    }
-
-    // Mock response for simulation
     res.json({
-      accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN ARULOGUN" : "GABRIEL ADEDEJI"),
+      accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN GABRIEL" : "SEGUN ARULOGUN"),
       accountNumber,
       bankName: "First Bank of Nigeria"
     });
@@ -24,9 +17,10 @@ export const POSController = {
 
   processTransfer: async (req: Request, res: Response) => {
     const { amount, accountNumber, bankName, accountName } = req.body;
-    
-    const userId = (req as any).user?.userId; 
+    const userId = (req as any).user?.userId;  
 
+    if (!userId) return res.status(401).json({ error: "User not found" });
+    
     try {
       const transaction = await prisma.transaction.create({
         data: {
@@ -38,7 +32,6 @@ export const POSController = {
         }
       });
 
-      // Deduct from the authenticated user's balance
       await prisma.user.update({
         where: { id: userId },
         data: { balance: { decrement: parseFloat(amount) } }
@@ -47,7 +40,19 @@ export const POSController = {
       io.emit("transaction:new", transaction);
       res.status(201).json(transaction);
     } catch (error) {
-      res.status(500).json({ error: "Transfer failed. Check if you are logged in." });
+      res.status(500).json({ error: "Transfer failed" });
+    }
+  },
+
+  getTransactions: async (req: Request, res: Response) => {
+    try {
+      const txs = await prisma.transaction.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 50
+      });
+      res.json(txs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch history" });
     }
   }
 };
