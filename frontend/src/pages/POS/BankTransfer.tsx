@@ -34,7 +34,14 @@ export default function BankTransfer() {
       return;
     }
     setLoading(true);
-    setTimeout(() => { setLoading(false); setStep(3); }, 1500);
+    try {
+      await api.post("/pos/process-transfer", form);
+      setStep(3);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Transfer failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
