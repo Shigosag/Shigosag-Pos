@@ -9,7 +9,7 @@ export const POSController = {
     if (accountNumber.length !== 10) return res.status(400).json({ error: "Invalid NUBAN" });
 
     res.json({
-      accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN GABRIEL" : "ADEDEJI ARULOGUN"),
+      accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN GABRIEL" : "SEGUN ARULOGUN"),
       accountNumber,
       bankName: "First Bank of Nigeria"
     });
