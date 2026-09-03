@@ -3,7 +3,7 @@ import { User, Search, Phone, Mail, MoreHorizontal } from "lucide-react";
 
 export default function Customers() {
   const users = [
-    { name: "Segun Gabriel", email: "segun@example.com", phone: "+234 810 000 0000", debt: 0 },
+    { name: "Segun Arulogun", email: "segun@example.com", phone: "+234 810 000 0000", debt: 0 },
     { name: "Arulogun Gabriel", email: "gabriel@example.com", phone: "+234 703 000 0000", debt: 15000 },
   ];
 
