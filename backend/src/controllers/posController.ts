@@ -17,8 +17,10 @@ export const POSController = {
 
   processTransfer: async (req: Request, res: Response) => {
     const { amount, accountNumber, bankName, accountName } = req.body;
-    const userId = (req as any).user?.userId; 
+    const userId = (req as any).user?.userId;  
 
+    if (!userId) return res.status(401).json({ error: "User not found" });
+    
     try {
       const transaction = await prisma.transaction.create({
         data: {
