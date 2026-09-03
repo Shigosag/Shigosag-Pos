@@ -49,8 +49,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`bg-red-600 text-white flex flex-col transition-all duration-300 ${open ? "w-64 p-5" : "w-16 p-3"}`}>
-        <button onClick={() => setOpen(!open)} className={`mb-6 text-white hover:bg-red-700 p-2 rounded-lg transition flex items-center ${open ? "justify-start" : "justify-center"}`}>
+      <aside className={`bg-indigo-600 text-white flex flex-col transition-all duration-300 ${open ? "w-64 p-5" : "w-16 p-3"}`}>
+        <button onClick={() => setOpen(!open)} className={`mb-6 text-white hover:bg-indigo-700 p-2 rounded-lg transition flex items-center ${open ? "justify-start" : "justify-center"}`}>
           {open ? <ChevronLeft size={22} /> : <ChevronRight size={22} />}
         </button>
 
@@ -61,22 +61,22 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
         <nav className="flex flex-col gap-3 text-sm">
           {menuItems.map((item) => (
-            <Link key={item.label} to={item.path} className={`flex items-center p-2 rounded-lg hover:bg-red-700 transition-colors ${open ? "gap-3" : "justify-center"}`}>
+            <Link key={item.label} to={item.path} className={`flex items-center p-2 rounded-lg hover:bg-indigo-700 transition-colors ${open ? "gap-3" : "justify-center"}`}>
               <item.icon size={21} className="shrink-0" />
               {open && <span className="whitespace-nowrap">{item.label}</span>}
             </Link>
           ))}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-red-500">
-          <button onClick={() => logout()} className={`flex items-center p-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-bold ${open ? "gap-3" : "justify-center"}`}>
+        <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-indigo-500">
+          <button onClick={() => logout()} className={`flex items-center p-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-bold ${open ? "gap-3" : "justify-center"}`}>
             <LogOut size={20} />
             {open && "Logout"}
           </button>
           
           <button 
             onClick={() => setShowDeleteModal(true)}
-            className={`flex items-center p-2 rounded-lg hover:bg-black/20 transition-colors text-sm font-bold text-red-200 ${open ? "gap-3" : "justify-center"}`}
+            className={`flex items-center p-2 rounded-lg hover:bg-black/20 transition-colors text-sm font-bold text-indigo-200 ${open ? "gap-3" : "justify-center"}`}
           >
             <UserX size={20} />
             {open && "Delete Account"}
@@ -89,7 +89,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm p-4 flex justify-between items-center z-10">
           <h2 className="font-bold text-gray-700">POS Terminal</h2>
-          <button onClick={() => setOpenCheckout(true)} className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition flex items-center gap-2 font-bold shadow-lg shadow-red-100">
+          <button onClick={() => setOpenCheckout(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2 font-bold shadow-lg shadow-indigo-100">
             <CreditCard size={18} /> Checkout
           </button>
         </header>
