@@ -18,20 +18,22 @@ export default function BankTransfer() {
   const formatNGN = (amt: number) => 
     amt.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
 
-  const handleVerify = async () => {
-    if (form.accountNumber.length !== 10) return alert("Enter 10 digits");
-    setLoading(true);
-    try {
-      const res = await api.post("/pos/verify-account", { accountNumber: form.accountNumber });
-      setForm({ ...form, accountName: res.data.accountName });
-      setStep(2);
-    } catch (err) {
-      setForm({ ...form, accountName: "SEGUN ARULOGUN GABRIEL" }); // Demo Fallback
-      setStep(2);
-    } finally {
-      setLoading(false);
-    }
-  };
+const [toast, setToast] = useState<{msg: string, type: 'error'} | null>(null);
+
+const handleVerify = async () => {
+  if (form.accountNumber.length !== 10) {
+    setToast({ msg: "Please enter exactly 10 digits", type: 'error' });
+    return;
+  }
+  setLoading(true);
+  try {
+    const res = await api.post("/pos/verify-account", { accountNumber: form.accountNumber });
+    setForm({ ...form, accountName: res.data.accountName });
+    setStep(2);
+  } catch (err) {
+    setToast({ msg: "Bank account not found", type: 'error' });
+  } finally { setLoading(false); }
+};
 
 const handleProcess = async () => {
   if (!form.amount || Number(form.amount) <= 0) return alert("Enter valid amount");
