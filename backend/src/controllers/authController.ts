@@ -38,7 +38,7 @@ export const AuthController = {
       const { password: _, ...userWithoutPassword } = user;
       res.json({ token, user: userWithoutPassword });
     } catch (err) {
-      res.status(500).json({ error: "Login process failed" });
+      res.status(500).json({ error: "Login failed" });
     }
   },
 
@@ -53,8 +53,6 @@ export const AuthController = {
 
   deleteAccount: async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
     try {
       await prisma.user.delete({ where: { id: userId } });
       res.json({ message: "Account deleted successfully" });
