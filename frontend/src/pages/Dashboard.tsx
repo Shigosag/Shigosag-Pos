@@ -66,12 +66,12 @@ export default function Dashboard() {
       </div>
 
       {/* Main Balance Card */}
-      <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 flex justify-between items-center group hover:border-red-200 transition-all">
+      <div className="bg-emerald-50 p-8 rounded-[32px] border border-emerald-100 flex justify-between items-center group hover:shadow-lg hover:shadow-emerald-100/50 transition-all">
         <div>
-          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Available Balance</p>
-          <h2 className="text-5xl font-black text-gray-900">{format(stats.balance)}</h2>
+          <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Available Balance</p>
+          <h2 className="text-5xl font-black text-emerald-900">{format(stats.balance)}</h2>
         </div>
-        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center">
+        <div className="w-16 h-16 bg-emerald-500 text-white rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-200">
           <Wallet size={32} />
         </div>
       </div>
