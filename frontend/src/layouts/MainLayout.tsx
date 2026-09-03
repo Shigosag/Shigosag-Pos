@@ -36,8 +36,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Custom UI Notifications */}
+    <div className="flex h-screen bg-gray-100 font-sans">
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       {showDeleteModal && (
         <ConfirmModal 
@@ -48,7 +47,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Indigo Theme */}
       <aside className={`bg-indigo-600 text-white flex flex-col transition-all duration-300 ${open ? "w-64 p-5" : "w-16 p-3"}`}>
         <button onClick={() => setOpen(!open)} className={`mb-6 text-white hover:bg-indigo-700 p-2 rounded-lg transition flex items-center ${open ? "justify-start" : "justify-center"}`}>
           {open ? <ChevronLeft size={22} /> : <ChevronRight size={22} />}
@@ -56,14 +55,14 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
         <div className={`mb-8 flex items-center ${open ? "gap-2" : "justify-center"}`}>
           <ShoppingCart size={24} className="shrink-0" />
-          {open && <span className="font-bold text-xl whitespace-nowrap">Shigosag POS</span>}
+          {open && <span className="font-bold text-xl whitespace-nowrap tracking-tighter">Shigosag POS</span>}
         </div>
 
         <nav className="flex flex-col gap-3 text-sm">
           {menuItems.map((item) => (
             <Link key={item.label} to={item.path} className={`flex items-center p-2 rounded-lg hover:bg-indigo-700 transition-colors ${open ? "gap-3" : "justify-center"}`}>
               <item.icon size={21} className="shrink-0" />
-              {open && <span className="whitespace-nowrap">{item.label}</span>}
+              {open && <span className="whitespace-nowrap font-medium">{item.label}</span>}
             </Link>
           ))}
         </nav>
@@ -76,20 +75,18 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           
           <button 
             onClick={() => setShowDeleteModal(true)}
-            className={`flex items-center p-2 rounded-lg hover:bg-black/20 transition-colors text-sm font-bold text-indigo-200 ${open ? "gap-3" : "justify-center"}`}
+            className={`flex items-center p-2 rounded-lg hover:bg-black/20 transition-colors text-sm font-bold text-indigo-100 ${open ? "gap-3" : "justify-center"}`}
           >
             <UserX size={20} />
             {open && "Delete Account"}
           </button>
         </div>
-
-        {open && <div className="mt-4 text-[10px] opacity-60 text-center">Powered by Shigosag</div>}
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm p-4 flex justify-between items-center z-10">
-          <h2 className="font-bold text-gray-700">POS Terminal</h2>
-          <button onClick={() => setOpenCheckout(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2 font-bold shadow-lg shadow-indigo-100">
+        <header className="bg-white shadow-sm p-4 flex justify-between items-center z-10 border-b border-gray-100">
+          <h2 className="font-bold text-gray-700">Terminal #001</h2>
+          <button onClick={() => setOpenCheckout(true)} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2 font-bold shadow-lg shadow-indigo-100">
             <CreditCard size={18} /> Checkout
           </button>
         </header>
