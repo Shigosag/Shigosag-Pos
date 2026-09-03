@@ -51,4 +51,14 @@ export const AuthController = {
       res.status(500).json({ error: "Login failed" });
     }
   }
+
+  deleteAccount: async (req: Request, res: Response) => {
+  const userId = (req as any).user?.userId;
+  try {
+    await prisma.user.delete({ where: { id: userId } });
+    res.json({ message: "Account deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete account" });
+  }
+}
 };
