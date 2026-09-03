@@ -35,7 +35,13 @@ export default function BankTransfer() {
     }
     setLoading(true);
     try {
-      await api.post("/pos/process-transfer", form);
+      const res = await api.post("/pos/process-transfer", form);
+    
+      // UPDATE LOCAL STATE
+      const updatedUser = { ...user, balance: user.balance - Number(form.amount) };
+      useAuthStore.setState({ user: updatedUser });
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
       setStep(3);
     } catch (err: any) {
       setError(err.response?.data?.error || "Transfer failed");
