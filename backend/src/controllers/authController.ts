@@ -18,12 +18,19 @@ export const AuthController = {
         data: { 
           name, 
           email, 
-          password, // In production, use bcrypt.hash(password, 10)
+          password, 
           balance: 10000000 
         }
       });
 
-      res.status(201).json({ message: "Account created successfully" });
+      // 3. Generate token immediately for instant login
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+
+      res.status(201).json({ 
+        token, 
+        user, 
+        message: "Account created successfully" 
+      });
     } catch (err) {
       res.status(500).json({ error: "Registration failed" });
     }
