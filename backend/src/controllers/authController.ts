@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
-const JWT_SECRET = process.env.JWT_SECRET || "shigosag_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET || "shigosag_secret_6482";
 
 export const AuthController = {
   register: async (req: Request, res: Response) => {
@@ -10,22 +11,27 @@ export const AuthController = {
 
     try {
       const existingUser = await prisma.user.findUnique({ where: { email } });
-      if (existingUser) return res.status(400).json({ error: "Account already exists" });
+      if (existingUser) return res.status(400).json({ error: "Email already registered" });
+
+      const hashedPassword = await bcrypt.hash(password, 12);
 
       const user = await prisma.user.create({
         data: { 
           name, 
           email, 
-          password, 
+          password: hashedPassword, 
           balance: 10000000 
         }
       });
 
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
 
       res.status(201).json({ 
         token, 
-        user, 
+        user: userWithoutPassword, 
         message: "Account created successfully" 
       });
     } catch (err) {
@@ -38,26 +44,26 @@ export const AuthController = {
 
     try {
       const user = await prisma.user.findUnique({ where: { email } });
-      if (!user || user.password !== password) {
-        return res.status(401).json({ error: "Invalid credentials" });
-      }
+      if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
-      res.json({ token, user });
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) return res.status(401).json({ error: "Invalid credentials" });
+
+      const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
+      
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ token, user: userWithoutPassword });
     } catch (err) {
-      res.status(500).json({ error: "Login failed" });
+      res.status(500).json({ error: "Login process failed" });
     }
-  }, // <--- THIS COMMA WAS MISSING
+  },
 
-  deleteAccount: async (req: Request, res: Response) => {
+  getProfile: async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
-    try {
-      await prisma.user.delete({ where: { id: userId } });
-      res.json({ message: "Account deleted successfully" });
-    } catch (err) {
-      res.status(500).json({ error: "Failed to delete account" });
-    }
+    const user = await prisma.user.findUnique({ 
+        where: { id: userId },
+        select: { id: true, name: true, email: true, balance: true, role: true }
+    });
+    res.json(user);
   }
 };
