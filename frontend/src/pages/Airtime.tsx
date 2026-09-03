@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Smartphone, Signal, Loader2, CheckCircle } from "lucide-react";
 import { formatCurrency } from "../utils/format";
 
-export default function VASPage({ mode }: { mode: 'airtime' | 'data' }) {
+export default function VASPage({ mode = 'airtime' }: { mode?: 'airtime' | 'data' }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -13,10 +13,11 @@ export default function VASPage({ mode }: { mode: 'airtime' | 'data' }) {
   };
 
   if (success) return (
-    <div className="max-w-md mx-auto py-20 text-center space-y-4">
+    <div className="max-w-md mx-auto py-20 text-center space-y-4 animate-in zoom-in">
       <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto"><CheckCircle size={40}/></div>
-      <h2 className="text-2xl font-black">Purchase Successful</h2>
-      <button onClick={() => setSuccess(false)} className="text-indigo-600 font-bold underline">Buy More</button>
+      <h2 className="text-2xl font-black text-slate-900">Purchase Successful</h2>
+      <p className="text-slate-500">The recipient has been credited.</p>
+      <button onClick={() => setSuccess(false)} className="text-indigo-600 font-bold hover:underline">New Purchase</button>
     </div>
   );
 
@@ -31,7 +32,7 @@ export default function VASPage({ mode }: { mode: 'airtime' | 'data' }) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Number</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Mobile Number</label>
           <input required type="tel" className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 outline-none font-bold" placeholder="080XXXXXXXX" />
         </div>
 
@@ -42,7 +43,7 @@ export default function VASPage({ mode }: { mode: 'airtime' | 'data' }) {
         </div>
 
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Amount</label>
           <input required type="number" className="w-full p-4 bg-slate-50 border-none rounded-2xl text-xl font-black focus:ring-2 focus:ring-indigo-600 outline-none" placeholder="0.00" />
         </div>
 
