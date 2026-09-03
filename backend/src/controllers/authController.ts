@@ -9,11 +9,9 @@ export const AuthController = {
     const { name, email, password } = req.body;
 
     try {
-      // 1. Check if user already exists
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) return res.status(400).json({ error: "Account already exists" });
 
-      // 2. Create user with 10M balance
       const user = await prisma.user.create({
         data: { 
           name, 
@@ -23,7 +21,6 @@ export const AuthController = {
         }
       });
 
-      // 3. Generate token immediately for instant login
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
       res.status(201).json({ 
@@ -50,15 +47,17 @@ export const AuthController = {
     } catch (err) {
       res.status(500).json({ error: "Login failed" });
     }
-  }
+  }, // <--- THIS COMMA WAS MISSING
 
   deleteAccount: async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
-  try {
-    await prisma.user.delete({ where: { id: userId } });
-    res.json({ message: "Account deleted" });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to delete account" });
+    const userId = (req as any).user?.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    try {
+      await prisma.user.delete({ where: { id: userId } });
+      res.json({ message: "Account deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to delete account" });
+    }
   }
-}
 };
