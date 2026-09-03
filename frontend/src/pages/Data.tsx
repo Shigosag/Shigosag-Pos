@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Signal, Loader2, CheckCircle, Smartphone } from "lucide-react";
+import { Signal, Loader2, CheckCircle } from "lucide-react";
 
 export default function Data() {
   const [loading, setLoading] = useState(false);
@@ -9,12 +9,16 @@ export default function Data() {
     { id: 1, size: "1.5GB", price: 1000, validity: "30 Days" },
     { id: 2, size: "3.5GB", price: 2000, validity: "30 Days" },
     { id: 3, size: "10GB", price: 5000, validity: "30 Days" },
+    { id: 4, size: "20GB", price: 8000, validity: "30 Days" },
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSuccess(true); }, 2000);
+    setTimeout(() => { 
+      setLoading(false); 
+      setSuccess(true); 
+    }, 2000);
   };
 
   if (success) return (
@@ -22,9 +26,9 @@ export default function Data() {
       <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
         <CheckCircle size={40}/>
       </div>
-      <h2 className="text-2xl font-black text-slate-900">Data Top-up Successful</h2>
-      <p className="text-slate-500 font-medium">Bundle has been provisioned to the recipient.</p>
-      <button onClick={() => setSuccess(false)} className="text-indigo-600 font-bold hover:underline">Purchase Another</button>
+      <h2 className="text-2xl font-black text-slate-900">Purchase Successful</h2>
+      <p className="text-slate-500 font-medium">Data bundle has been provisioned.</p>
+      <button onClick={() => setSuccess(false)} className="text-indigo-600 font-bold hover:underline">Buy Another</button>
     </div>
   );
 
@@ -34,7 +38,7 @@ export default function Data() {
         <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
           <Signal size={24} />
         </div>
-        <h2 className="text-xl font-black text-slate-900">Buy Data Bundle</h2>
+        <h2 className="text-xl font-black text-slate-900">Mobile Data Bundle</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -44,7 +48,7 @@ export default function Data() {
         </div>
 
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Bundle Plan</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Plan</label>
           <div className="space-y-2 mt-2">
             {plans.map((plan) => (
               <label key={plan.id} className="flex items-center justify-between p-4 border-2 border-slate-50 rounded-2xl cursor-pointer hover:border-indigo-100 transition-colors has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
@@ -62,7 +66,7 @@ export default function Data() {
         </div>
 
         <button disabled={loading} className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-100">
-          {loading ? <Loader2 className="animate-spin" /> : "Purchase Data"}
+          {loading ? <Loader2 className="animate-spin" /> : "Complete Purchase"}
         </button>
       </form>
     </div>
