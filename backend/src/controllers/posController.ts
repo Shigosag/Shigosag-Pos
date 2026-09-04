@@ -1,54 +1,25 @@
 import { Request, Response } from "express";
+import { POSService } from "../services/posService.js";
 import { prisma } from "../config/db.js";
-import { io } from "../server.js";
 
 export const POSController = {
-  verifyAccountNumber: async (req: Request, res: Response) => {
-    const { accountNumber } = req.body;
-    await new Promise(resolve => setTimeout(resolve, 800));
-    if (accountNumber.length !== 10) return res.status(400).json({ error: "Invalid NUBAN" });
-
-    res.json({
-      accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN GABRIEL" : "SEGUN ARULOGUN"),
-      accountNumber,
-      bankName: "First Bank of Nigeria"
-    });
-  },
-
   processTransfer: async (req: Request, res: Response) => {
-    const { amount, accountNumber, bankName, accountName } = req.body;
-    const userId = (req as any).user?.userId;  
-
-    if (!userId) return res.status(401).json({ error: "User not found" });
-    
+    const userId = (req as any).user?.userId;
     try {
-      const transaction = await prisma.transaction.create({
-        data: {
-          reference: `SHG-TX-${Math.floor(100000 + Math.random() * 900000)}`,
-          type: "TRANSFER",
-          amount: parseFloat(amount),
-          recipientDetail: `${bankName} | ${accountNumber} | ${accountName}`,
-          status: "SUCCESS"
-        }
-      });
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: { balance: { decrement: parseFloat(amount) } }
-      });
-
-      io.emit("transaction:new", transaction);
-      res.status(201).json(transaction);
-    } catch (error) {
-      res.status(500).json({ error: "Transfer failed" });
+      const result = await POSService.processTransfer(userId, req.body);
+      res.status(201).json(result);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
     }
   },
 
   getTransactions: async (req: Request, res: Response) => {
     try {
+      const { type, limit = 50 } = req.query;
       const txs = await prisma.transaction.findMany({
+        where: type ? { type: type as any } : {},
         orderBy: { createdAt: 'desc' },
-        take: 50
+        take: Number(limit)
       });
       res.json(txs);
     } catch (error) {
