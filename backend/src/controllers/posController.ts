@@ -3,6 +3,19 @@ import { POSService } from "../services/posService.js";
 import { prisma } from "../config/db.js";
 
 export const POSController = {
+  // Add this back in
+  verifyAccountNumber: async (req: Request, res: Response) => {
+    const { accountNumber } = req.body;
+    await new Promise(resolve => setTimeout(resolve, 800));
+    if (accountNumber.length !== 10) return res.status(400).json({ error: "Invalid NUBAN" });
+
+    res.json({
+      accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN GABRIEL" : "SEGUN ARULOGUN"),
+      accountNumber,
+      bankName: "First Bank of Nigeria"
+    });
+  },
+
   processTransfer: async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
     try {
