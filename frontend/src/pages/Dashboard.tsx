@@ -71,7 +71,8 @@ export default function Dashboard() {
           <p className="text-[11px] opacity-90 font-medium">All POS services operational</p>
         </div>
         <div className="text-sm font-bold flex items-center gap-2">
-           <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> 🟢 Online
+           <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" /> 
+           <span className="animate-pulse">🟢 Online</span>
         </div>
       </div>
 
@@ -153,7 +154,7 @@ export default function Dashboard() {
           { label: "Sales", val: "$12,540", color: "text-indigo-600" },
           { label: "Transactions", val: "124", color: "text-blue-600" },
           { label: "Customers", val: "2,381", color: "text-purple-600" },
-          { label: "Status", val: "LIVE 🟢", color: "text-emerald-600" }
+          { label: "Status", val: <>LIVE <span className="animate-pulse">🟢</span></>, color: "text-emerald-600" }
         ].map((s, i) => (
           <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
             <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">{s.label}</p>
