@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   Rocket, Wallet, ArrowUpRight, ArrowDownLeft, Users, 
-  History as HistoryIcon, BarChart3, CreditCard 
+  BarChart3, CreditCard, Activity 
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { useAuthStore } from "../store/authStore";
 
 export default function Dashboard() {
@@ -22,7 +22,6 @@ export default function Dashboard() {
     { name: "Thu", sales: 2400 }, { name: "Fri", sales: 3200 }
   ];
 
-  // Restored Emojis and Previous Descriptions
   const cards = [
     { title: "POS Sales", icon: "🛒", path: "/sales", color: "from-red-500 to-red-600", desc: "Process customer sales" },
     { title: "Products", icon: "📦", path: "/products", color: "from-blue-500 to-blue-600", desc: "Manage inventory" },
@@ -39,46 +38,59 @@ export default function Dashboard() {
   const format = (val: number) => val.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-6 pb-10">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100">
-            <Rocket size={32} />
+          <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100">
+            <Rocket size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Shigosag POS</h1>
-            <p className="text-gray-500 font-medium italic">Terminal System</p>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Shigosag POS</h1>
+            <p className="text-xs text-gray-500 font-medium">Real-time fintech dashboard system</p>
           </div>
         </div>
 
-        {/* Fixed Toggle */}
         <button 
           onClick={() => setColoredMode(!coloredMode)}
           className={`flex items-center gap-3 px-4 py-2 rounded-2xl font-bold text-[10px] transition-all border ${
             coloredMode ? "bg-indigo-50 text-indigo-600 border-indigo-100" : "bg-white text-gray-400 border-gray-100"
           }`}
         >
-          {coloredMode ? "COLORED" : "LIGHT"}
-          <div className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${coloredMode ? "bg-indigo-600" : "bg-gray-200"}`}>
-            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm ${coloredMode ? "translate-x-7" : "translate-x-1"}`} />
+          {coloredMode ? "COLORED MODE" : "NORMAL MODE"}
+          <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${coloredMode ? "bg-indigo-600" : "bg-gray-200"}`}>
+            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 shadow-sm ${coloredMode ? "translate-x-6" : "translate-x-1"}`} />
           </div>
         </button>
       </div>
 
-      {/* Institutional Green Balance Card */}
-      <div className="bg-emerald-50 p-8 rounded-xl border border-emerald-100 flex justify-between items-center shadow-sm hover:shadow-md transition-all">
+      {/* System Status Banner */}
+      <div className="bg-indigo-600 text-white rounded-xl shadow p-4 flex justify-between items-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
         <div>
-          <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Available Balance</p>
-          <h2 className="text-5xl font-black text-emerald-900">{format(stats.balance)}</h2>
+          <h3 className="font-bold text-sm">System Status</h3>
+          <p className="text-[11px] opacity-90 font-medium">All POS services operational</p>
         </div>
-        <div className="w-16 h-16 bg-emerald-500 text-white rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-200">
-          <Wallet size={32} />
+        <div className="text-sm font-bold flex items-center gap-2">
+           <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> 🟢 Online
         </div>
       </div>
 
-      {/* Quick Actions Grid (Previous Card Style & Space) */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
+      {/* Available Balance */}
+      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-md hover:shadow-xl transition-all duration-300 flex justify-between items-center group">
+        <div>
+          <p className="text-gray-500 text-[11px] font-bold uppercase tracking-widest mb-1">Available Balance</p>
+          <p className="text-4xl font-black text-emerald-600">{format(stats.balance)}</p>
+        </div>
+        <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500">
+           <Wallet size={32} />
+        </div>
+      </div>
+
+      {/* Quick Actions Title */}
+      <h2 className="text-lg font-black text-gray-800 -mb-2">Quick Actions</h2>
+
+      {/* Quick Actions Grid (Previous Spacing & Emoji Icons) */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {cards.map((card) => (
           <Link
             key={card.title}
@@ -89,46 +101,65 @@ export default function Dashboard() {
                 : "bg-white text-gray-800 border border-gray-200"
             }`}
           >
-            <div className="text-3xl">{card.icon}</div>
-            <div className="font-bold mt-2 text-base">{card.title}</div>
-            <p className={`text-xs mt-1 opacity-80 ${coloredMode ? "text-white" : "text-gray-500"}`}>
+            <div className="text-3xl mb-2">{card.icon}</div>
+            <div className="font-bold text-sm">{card.title}</div>
+            <p className={`text-[10px] mt-0.5 font-medium leading-tight ${coloredMode ? "text-white/80" : "text-gray-400"}`}>
               {card.desc}
             </p>
           </Link>
         ))}
       </div>
 
-      {/* Bottom Section: Chart + Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <h3 className="font-bold text-gray-900 text-lg mb-6 flex items-center gap-2">
-            <BarChart3 size={18} className="text-indigo-600"/> Sales Analytics
-          </h3>
-          <div className="h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8'}} />
-                <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
-                <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={4} dot={{r: 4}} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+      {/* Sales Chart */}
+      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+        <h2 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
+           <BarChart3 size={18} className="text-indigo-600" /> 📊 Sales Analytics
+        </h2>
+        <div className="h-[250px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{fill: '#94a3b8', fontSize: 12}} 
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{fill: '#94a3b8', fontSize: 12}} 
+              />
+              <Tooltip 
+                contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} 
+              />
+              <Line 
+                type="monotone" 
+                dataKey="sales" 
+                stroke="#ef4444" 
+                strokeWidth={4} 
+                dot={{ r: 5, fill: '#ef4444', strokeWidth: 2, stroke: '#fff' }} 
+                activeDot={{ r: 8 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
+      </div>
 
-        <div className="bg-indigo-900 p-8 rounded-xl text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
-           <div className="absolute top-[-10%] right-[-10%] w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-40"></div>
-           <div className="relative z-10">
-              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">Today's Inflow</p>
-              <h4 className="text-3xl font-black">{format(stats.inflow)}</h4>
-           </div>
-           <div className="relative z-10 pt-6 border-t border-indigo-800">
-              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">System Status</p>
-              <h4 className="text-lg font-black flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"/> 
-                Operational
-              </h4>
-           </div>
-        </div>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Sales", val: "$12,540", color: "text-indigo-600" },
+          { label: "Transactions", val: "124", color: "text-blue-600" },
+          { label: "Customers", val: "2,381", color: "text-purple-600" },
+          { label: "Status", val: "LIVE 🟢", color: "text-emerald-600" }
+        ].map((s, i) => (
+          <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">{s.label}</p>
+            <p className={`text-xl font-black ${s.color} mt-1`}>{s.val}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
