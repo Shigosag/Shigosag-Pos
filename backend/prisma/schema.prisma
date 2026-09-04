@@ -36,7 +36,7 @@ model User {
   balance   Float    @default(10000000.00)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
   sales     Sale[]
 
   @@index([email])
@@ -51,7 +51,7 @@ model Product {
   category    String   @default("General")
   isArchived  Boolean  @default(false)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now()) @updatedAt
 
   @@index([barcode])
   @@index([name])
@@ -65,7 +65,7 @@ model Customer {
   debt         Float         @default(0)
   transactions Transaction[]
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt    DateTime      @default(now()) @updatedAt
 }
 
 model Transaction {
