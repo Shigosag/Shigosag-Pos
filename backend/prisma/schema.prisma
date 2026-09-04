@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   ADMIN
   CASHIER
+  MANAGER
 }
 
 enum TransactionType {
@@ -18,6 +19,7 @@ enum TransactionType {
   AIRTIME
   DATA
   WITHDRAWAL
+  ADJUSTMENT
 }
 
 enum TransactionStatus {
@@ -33,10 +35,10 @@ model User {
   password  String
   name      String
   role      Role     @default(CASHIER)
-  balance   Float    @default(10000000.00)
+  balance   Decimal  @default(10000000.00) @db.Decimal(20, 2)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @updatedAt
   sales     Sale[]
 
   @@index([email])
@@ -45,13 +47,13 @@ model User {
 model Product {
   id          String   @id @default(cuid())
   name        String
-  price       Float
+  price       Decimal  @db.Decimal(20, 2)
   stock       Int
   barcode     String?  @unique
   category    String   @default("General")
   isArchived  Boolean  @default(false)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  updatedAt   DateTime @updatedAt
 
   @@index([barcode])
   @@index([name])
@@ -62,17 +64,17 @@ model Customer {
   name         String
   phone        String?       @unique
   email        String?
-  debt         Float         @default(0)
+  debt         Decimal       @default(0) @db.Decimal(20, 2)
   transactions Transaction[]
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now()) @updatedAt
+  updatedAt    DateTime      @updatedAt
 }
 
 model Transaction {
   id              String            @id @default(cuid())
   reference       String            @unique
   type            TransactionType
-  amount          Float
+  amount          Decimal           @db.Decimal(20, 2)
   status          TransactionStatus @default(SUCCESS)
   paymentMethod   String            @default("CASH")
   recipientDetail String?
@@ -82,11 +84,12 @@ model Transaction {
 
   @@index([reference])
   @@index([createdAt])
+  @@index([type])
 }
 
 model Sale {
   id        String   @id @default(cuid())
-  total     Float
+  total     Decimal  @db.Decimal(20, 2)
   items     Json     
   userId    String
   user      User     @relation(fields: [userId], references: [id])
