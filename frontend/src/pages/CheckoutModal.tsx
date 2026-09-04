@@ -6,6 +6,13 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState<number>(12500); 
+  const [expiry, setExpiry] = useState("");
+
+  const handleExpiry = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 2) value = value.substring(0, 2) + "/" + value.substring(2, 4);
+    setExpiry(value);
+  };
 
   const handlePay = () => {
     setLoading(true);
@@ -27,7 +34,7 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
               <CreditCard size={20} />
            </div>
-           <h2 className="text-xl font-black text-slate-900">Secure Checkout</h2>
+           <h2 className="text-xl font-black text-slate-900 tracking-tight">Secure Checkout</h2>
         </div>
 
         {step === "form" && (
@@ -43,19 +50,19 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="space-y-3">
-              <input placeholder="Card Number" className="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+              <input placeholder="Card Number" className="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold" maxLength={16} />
               <div className="flex gap-3">
-                <input placeholder="MM/YY" className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-                <input placeholder="CVC" className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                <input value={expiry} onChange={handleExpiry} placeholder="MM/YY" maxLength={5} className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold" />
+                <input placeholder="CVC" maxLength={3} className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold" />
               </div>
             </div>
 
             <button
               onClick={handlePay}
               disabled={loading}
-              className="mt-4 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+              className="mt-4 w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
             >
-              {loading ? "Processing..." : `Pay ${formatCurrency(amount)}`}
+              {loading ? "Processing Terminal..." : `Pay ${formatCurrency(amount)}`}
             </button>
           </div>
         )}
@@ -67,19 +74,19 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <h3 className="text-2xl font-black text-slate-900">Payment Confirmed</h3>
-            <p className="text-slate-500 mt-2 font-medium">Transaction was successful</p>
+            <p className="text-slate-500 mt-2 font-medium italic">Transaction was successful</p>
 
             <div className="mt-8 text-sm bg-slate-50 p-6 rounded-[24px] text-left space-y-2 border border-slate-100">
-              <div className="flex justify-between"><span className="text-slate-400 font-bold">Reference:</span> <span className="font-mono font-bold text-slate-700 uppercase">SHG-{Math.floor(Math.random() * 999999)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-400 font-bold">Amount:</span> <span className="font-black text-indigo-600">{formatCurrency(amount)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-400 font-bold">Date:</span> <span className="font-bold text-slate-700">{new Date().toLocaleDateString()}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Reference</span> <span className="font-mono font-bold text-slate-700 uppercase tracking-tighter">SHG-{Math.floor(Math.random() * 999999)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Amount</span> <span className="font-black text-indigo-600">{formatCurrency(amount)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Status</span> <span className="text-emerald-600 font-black">PAID SUCCESS</span></div>
             </div>
 
             <div className="flex gap-3 mt-8">
               <button onClick={() => window.print()} className="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition">
                 <Printer size={18} /> Receipt
               </button>
-              <button onClick={onClose} className="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+              <button onClick={onClose} className="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition">
                 Done
               </button>
             </div>
