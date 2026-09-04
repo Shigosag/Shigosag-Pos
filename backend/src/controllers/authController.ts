@@ -53,6 +53,7 @@ export const AuthController = {
 
   deleteAccount: async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
     try {
       await prisma.user.delete({ where: { id: userId } });
       res.json({ message: "Account deleted successfully" });
