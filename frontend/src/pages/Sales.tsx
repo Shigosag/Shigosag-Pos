@@ -53,30 +53,29 @@ export default function Sales() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredProducts.map((p: any) => {
-              if (!p) return null; // Prevent crash on null items
-              return (
-                <button 
-                  key={p.id || Math.random()} 
-                  onClick={() => addToCart(p)} 
-                  disabled={!p.stock || p.stock <= 0}
-                  className={`bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:border-indigo-600 transition-all text-left group relative ${(!p.stock || p.stock <= 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <p className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                    {p.name || "Unnamed Product"}
-                  </p>
-                  <p className="text-xl font-black text-indigo-600 mt-1">
-                    {formatCurrency(Number(p.price || 0))}
-                  </p>
-                  <div className="flex justify-between items-center mt-6">
-                    <span className={`text-[10px] uppercase font-black px-3 py-1.5 rounded-xl ${(p.stock || 0) < 10 ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'}`}>
-                      Stock: {p.stock || 0}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+            {filteredProducts.map((p: any) => (
+              <button 
+                key={p.id || Math.random()} 
+                onClick={() => addToCart(p)} 
+                disabled={!p.stock || p.stock <= 0}
+                className={`bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:border-indigo-600 transition-all text-left group relative ${(!p.stock || p.stock <= 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <p className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  {p.name || "Unnamed Product"}
+                </p>
+                <p className="text-xl font-black text-indigo-600 mt-1">
+                  {formatCurrency(Number(p.price || 0))}
+                </p>
+                <div className="flex justify-between items-center mt-6">
+                  <span className={`text-[10px] uppercase font-black px-3 py-1.5 rounded-xl ${(p.stock || 0) < 10 ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'}`}>
+                    Stock: {p.stock || 0}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
+        )}
+      </div>
 
       {/* Right Section: Cart Sidebar */}
       <div className="w-full lg:w-[400px] bg-slate-900 rounded-[40px] shadow-2xl flex flex-col overflow-hidden border border-white/5">
