@@ -22,10 +22,9 @@ export default function Register() {
       login(res.data.user, res.data.token);
       navigate("/");
     } catch (err: any) {
-      setToast({ 
-        msg: err.response?.data?.error || "Registration Failed", 
-        type: "error" 
-      });
+      // The backend ApiResponse sends the message in 'message'
+      const errorMsg = err.response?.data?.message || "An account with this email already exists.";
+      setToast({ msg: errorMsg, type: "error" });
     } finally {
       setLoading(false);
     }
