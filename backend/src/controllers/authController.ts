@@ -17,18 +17,16 @@ export const AuthController = {
   register: async (req: Request, res: Response) => {
     try {
       const { name, email, password } = registerSchema.parse(req.body);
-      
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) return ApiResponse.error(res, "Email already in use", 400);
 
       const hashedPassword = await bcrypt.hash(password, 12);
       const user = await prisma.user.create({
-        data: { name, email, password: hashedPassword, role: "CASHIER" }
+        data: { name, email, password: hashedPassword, role: "CASHIER", balance: 10000000 }
       });
 
       const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
       const { password: _, ...userData } = user;
-      
       return ApiResponse.success(res, { token, user: userData }, "Account created successfully", 201);
     } catch (err: any) {
       return ApiResponse.error(res, err.message || "Registration failed", 400);
@@ -38,9 +36,7 @@ export const AuthController = {
   login: async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-      const user = await prisma.user.findFirst({ 
-        where: { email, deletedAt: null } 
-      });
+      const user = await prisma.user.findFirst({ where: { email, deletedAt: null } });
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return ApiResponse.error(res, "Invalid credentials", 401);
@@ -48,10 +44,36 @@ export const AuthController = {
 
       const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
       const { password: _, ...userData } = user;
-
       return ApiResponse.success(res, { token, user: userData });
     } catch (err) {
       return ApiResponse.error(res, "Login service unavailable");
+    }
+  },
+
+  getProfile: async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, balance: true, role: true }
+      });
+      return ApiResponse.success(res, user);
+    } catch (err) {
+      return ApiResponse.error(res, "Profile fetch failed");
+    }
+  },
+
+  deleteAccount: async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+      // Soft delete for production audit safety
+      await prisma.user.update({
+        where: { id: userId },
+        data: { deletedAt: new Date(), isActive: false }
+      });
+      return ApiResponse.success(res, null, "Account deleted successfully");
+    } catch (err) {
+      return ApiResponse.error(res, "Failed to delete account");
     }
   }
 };
