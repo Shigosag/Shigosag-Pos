@@ -11,8 +11,11 @@ export default function Products() {
   const fetchProducts = async () => {
     try {
       const res = await api.get("/products");
-      setProducts(res.data);
-    } catch (e) { console.error(e); }
+      setProducts(Array.isArray(res.data.data) ? res.data.data : []);
+    } catch (e) { 
+      console.error(e);
+      setProducts([]); 
+    }
   };
 
   useEffect(() => { fetchProducts(); }, []);
