@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { env } from "../utils/validateEnv.js"; // Import centralized env
+import { env } from "../utils/validateEnv.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { z } from "zod";
@@ -17,9 +17,7 @@ export const AuthController = {
     try {
       const { name, email, password } = registerSchema.parse(req.body);
       const existingUser = await prisma.user.findUnique({ where: { email } });
-      
-      // Use ApiResponse.error which puts the text in "message"
-      if (existingUser) return ApiResponse.error(res, "Account already exists with this email", 400);
+      if (existingUser) return ApiResponse.error(res, "An account with this email already exists", 400);
 
       const hashedPassword = await bcrypt.hash(password, 12);
       const user = await prisma.user.create({
@@ -43,7 +41,6 @@ export const AuthController = {
         return ApiResponse.error(res, "Invalid email or password", 401);
       }
 
-      // Use env.JWT_SECRET to match the Middleware
       const token = jwt.sign({ userId: user.id, role: user.role }, env.JWT_SECRET, { expiresIn: "24h" });
       const { password: _, ...userData } = user;
       return ApiResponse.success(res, { token, user: userData });
@@ -52,10 +49,22 @@ export const AuthController = {
     }
   },
 
+  getProfile: async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, balance: true, role: true }
+      });
+      return ApiResponse.success(res, user);
+    } catch (err) {
+      return ApiResponse.error(res, "Profile fetch failed");
+    }
+  },
+
   deleteAccount: async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user?.userId;
-      // Soft delete for production audit safety
       await prisma.user.update({
         where: { id: userId },
         data: { deletedAt: new Date(), isActive: false }
