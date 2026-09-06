@@ -2,7 +2,7 @@ import React, { ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Home, Package, DollarSign, BarChart3, ShoppingCart, 
-  ChevronLeft, ChevronRight, CreditCard, LogOut, UserX, User as UserIcon 
+  ChevronLeft, ChevronRight, CreditCard, LogOut, UserX 
 } from "lucide-react";
 import CheckoutModal from "../pages/CheckoutModal";
 import { useAuthStore } from "../store/authStore";
@@ -19,7 +19,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  // Time-based greeting logic
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
@@ -84,10 +83,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* UPDATED HEADER: Welcomes User with Name and Dynamic Greeting */}
         <header className="bg-white shadow-sm p-4 px-8 flex justify-between items-center z-10 border-b border-gray-100">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black">
+             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black uppercase">
                 {user?.name?.charAt(0) || "U"}
              </div>
              <div>
