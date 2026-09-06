@@ -43,7 +43,7 @@ model User {
   sales     Sale[]
   logs      SystemLog[]
 
-  @@index([email])
+  @@index([email, isActive])
 }
 
 model Product {
@@ -58,7 +58,7 @@ model Product {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  @@index([name])
+  @@index([name, isArchived])
 }
 
 model Transaction {
@@ -69,6 +69,7 @@ model Transaction {
   status          TransactionStatus @default(SUCCESS)
   paymentMethod   String            @default("CASH")
   recipientDetail String?
+  userId          String?
   createdAt       DateTime          @default(now())
 
   @@index([reference, createdAt, type])
@@ -77,12 +78,12 @@ model Transaction {
 model Sale {
   id        String   @id @default(cuid())
   total     Decimal  @db.Decimal(20, 2)
-  items     Json     
+  items     Json     // [{id, name, price, quantity}]
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
-  @@index([createdAt])
+  @@index([userId, createdAt])
 }
 
 model SystemLog {
@@ -93,4 +94,6 @@ model SystemLog {
   user      User?    @relation(fields: [userId], references: [id])
   ipAddress String?
   createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
