@@ -52,8 +52,13 @@ app.use(express.static(distPath));
 app.use(errorHandler);
 
 // 6. SPA Fallback
-app.get("*", (req, res) => {
+// Use a middleware without a path to catch all remaining requests
+app.use((req, res) => {
+  // If the request is not for an API and not handled by static files, serve index.html
   if (!req.path.startsWith("/api")) {
     res.sendFile(path.join(distPath, "index.html"));
+  } else {
+    // If it is an API route that reached here, it means it doesn't exist
+    res.status(404).json({ error: "API endpoint not found" });
   }
 });

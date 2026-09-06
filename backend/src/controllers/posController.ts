@@ -5,19 +5,16 @@ import { prisma } from "../config/db.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const POSController = {
+  // Add this back in
   verifyAccountNumber: async (req: Request, res: Response) => {
     const { accountNumber } = req.body;
-    if (!accountNumber || accountNumber.length !== 10) {
-      return ApiResponse.error(res, "Invalid NUBAN format", 400);
-    }
+    await new Promise(resolve => setTimeout(resolve, 800));
+    if (accountNumber.length !== 10) return res.status(400).json({ error: "Invalid NUBAN" });
 
-    // Mocking Nigerian Inter-Bank Settlement System (NIBSS) response
-    await new Promise(resolve => setTimeout(resolve, 600));
-    
-    return ApiResponse.success(res, {
+    res.json({
       accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN GABRIEL" : "SEGUN ARULOGUN"),
       accountNumber,
-      bankName: req.body.bank || "First Bank of Nigeria"
+      bankName: "First Bank of Nigeria"
     });
   },
 
