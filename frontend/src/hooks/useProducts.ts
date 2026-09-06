@@ -8,7 +8,7 @@ export function useProducts() {
     queryKey: ["products"],
     queryFn: async () => {
       const res = await api.get("/products");
-      return Array.isArray(res.data.data) ? res.data.data : [];
+      return res.data.data || []; 
     }
   });
 
