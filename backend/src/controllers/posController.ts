@@ -1,20 +1,23 @@
 import { Request, Response } from "express";
 import { POSService } from "../services/posService.js";
 import { SaleService } from "../services/saleService.js";
-import { prisma } from "../config/db.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { prisma } from "../config/db.js";
 
 export const POSController = {
-  // Add this back in
   verifyAccountNumber: async (req: Request, res: Response) => {
     const { accountNumber } = req.body;
-    await new Promise(resolve => setTimeout(resolve, 800));
-    if (accountNumber.length !== 10) return res.status(400).json({ error: "Invalid NUBAN" });
+    
+    if (!accountNumber || accountNumber.length !== 10) {
+      return ApiResponse.error(res, "Invalid NUBAN format", 400);
+    }
 
-    res.json({
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    return ApiResponse.success(res, {
       accountName: "SHIGOSAG VENTURES - " + (Math.random() > 0.5 ? "SEGUN GABRIEL" : "SEGUN ARULOGUN"),
       accountNumber,
-      bankName: "First Bank of Nigeria"
+      bankName: req.body.bank || "First Bank of Nigeria"
     });
   },
 
@@ -40,15 +43,13 @@ export const POSController = {
 
   getTransactions: async (req: Request, res: Response) => {
     try {
-      const { type, limit = 50 } = req.query;
       const txs = await prisma.transaction.findMany({
-        where: type ? { type: type as any } : {},
         orderBy: { createdAt: 'desc' },
-        take: Math.min(Number(limit), 100)
+        take: 50
       });
       return ApiResponse.success(res, txs);
     } catch (error) {
-      return ApiResponse.error(res, "Failed to fetch ledger history");
+      return ApiResponse.error(res, "Failed to fetch history");
     }
   }
 };
