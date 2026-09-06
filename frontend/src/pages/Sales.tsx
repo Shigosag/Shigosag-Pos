@@ -11,9 +11,9 @@ export default function Sales() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [search, setSearch] = useState("");
   
-  const filteredProducts = products.filter((p: any) => 
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProducts = Array.isArray(products) 
+    ? products.filter((p: any) => p.name.toLowerCase().includes(search.toLowerCase()))
+  : [];
 
   const total = items.reduce((acc, item) => acc + (Number(item.price) * item.quantity), 0);
 
