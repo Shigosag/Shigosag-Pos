@@ -8,9 +8,12 @@ export class POSService {
     bankName: string;
     accountName: string;
   }) {
-    // Atomic Transaction: All succeed or all fail
+    // High isolation to prevent race conditions (double-spending)
     return await prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({ where: { id: userId } });
+      const user = await tx.user.findUnique({ 
+        where: { id: userId },
+        select: { balance: true, id: true }
+      });
       
       if (!user || Number(user.balance) < data.amount) {
         throw new Error("Insufficient institutional balance");
@@ -18,7 +21,7 @@ export class POSService {
 
       const transaction = await tx.transaction.create({
         data: {
-          reference: `SHG-TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          reference: `SHG-TX-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
           type: "TRANSFER",
           amount: data.amount,
           recipientDetail: `${data.bankName} | ${data.accountNumber} | ${data.accountName}`,
@@ -31,33 +34,32 @@ export class POSService {
         data: { balance: { decrement: data.amount } }
       });
 
-      // Real-time notification
-      io.emit("transaction:new", transaction);
-
-      return { transaction, newBalance: updatedUser.balance };
-    });
-  }
-
-  static async processSale(userId: string, total: number, items: any[]) {
-    return await prisma.$transaction(async (tx) => {
-      const sale = await tx.sale.create({
+      // Log the critical financial action
+      await tx.systemLog.create({
         data: {
-          total,
-          items,
-          userId
+          action: "TRANSFER_OUT",
+          userId,
+          details: `Transfer of ${data.amount} to ${data.accountNumber}`
         }
       });
 
-      // Update inventory stock
-      for (const item of items) {
-        await tx.product.update({
-          where: { id: item.id },
-          data: { stock: { decrement: item.quantity } }
-        });
-      }
-
-      io.emit("sale:new", sale);
-      return sale;
+      io.emit("transaction:new", transaction);
+      return { transaction, newBalance: updatedUser.balance };
+    }, {
+      isolationLevel: "Serializable"
     });
+  }
+
+  static async getHistory(page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+    const [total, items] = await Promise.all([
+      prisma.transaction.count(),
+      prisma.transaction.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' }
+      })
+    ]);
+    return { items, total, pages: Math.ceil(total / limit) };
   }
 }

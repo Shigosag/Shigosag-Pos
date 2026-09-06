@@ -9,8 +9,8 @@ datasource db {
 
 enum Role {
   ADMIN
-  CASHIER
   MANAGER
+  CASHIER
 }
 
 enum TransactionType {
@@ -30,44 +30,35 @@ enum TransactionStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String      @id @default(cuid())
+  email     String      @unique
   password  String
   name      String
-  role      Role     @default(CASHIER)
-  balance   Decimal  @default(10000000.00) @db.Decimal(20, 2)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      Role        @default(CASHIER)
+  balance   Decimal     @default(10000000.00) @db.Decimal(20, 2)
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
   sales     Sale[]
+  logs      SystemLog[]
 
   @@index([email])
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  price       Decimal  @db.Decimal(20, 2)
+  price       Decimal   @db.Decimal(20, 2)
   stock       Int
-  barcode     String?  @unique
-  category    String   @default("General")
-  isArchived  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  barcode     String?   @unique
+  category    String    @default("General")
+  isArchived  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
-  @@index([barcode])
   @@index([name])
-}
-
-model Customer {
-  id           String        @id @default(cuid())
-  name         String
-  phone        String?       @unique
-  email        String?
-  debt         Decimal       @default(0) @db.Decimal(20, 2)
-  transactions Transaction[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
 }
 
 model Transaction {
@@ -78,13 +69,9 @@ model Transaction {
   status          TransactionStatus @default(SUCCESS)
   paymentMethod   String            @default("CASH")
   recipientDetail String?
-  customerId      String?
-  customer        Customer?         @relation(fields: [customerId], references: [id])
   createdAt       DateTime          @default(now())
 
-  @@index([reference])
-  @@index([createdAt])
-  @@index([type])
+  @@index([reference, createdAt, type])
 }
 
 model Sale {
@@ -96,4 +83,14 @@ model Sale {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  ipAddress String?
+  createdAt DateTime @default(now())
 }
