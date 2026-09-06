@@ -22,7 +22,9 @@ export default function Login() {
       login(res.data.user, res.data.token);
       navigate("/");
     } catch (err: any) {
-      setToast({ msg: "Invalid Credentials", type: "error" });
+      // The backend ApiResponse sends the message in 'message'
+      const errorMsg = err.response?.data?.message || "Invalid credentials";
+      setToast({ msg: errorMsg, type: "error" });
     } finally {
       setLoading(false);
     }
