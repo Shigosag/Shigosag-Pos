@@ -9,8 +9,14 @@ export default function History() {
 
   useEffect(() => {
     api.get("/pos/transactions")
-      .then(res => setTransactions(res.data))
-      .catch(console.error)
+      .then(res => {
+        const txData = res.data?.data || [];
+        setTransactions(txData);
+      })
+      .catch(err => {
+        console.error("Ledger Fetch Error:", err);
+        setTransactions([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
