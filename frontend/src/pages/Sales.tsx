@@ -11,7 +11,6 @@ export default function Sales() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [search, setSearch] = useState("");
   
-  // Memoize filtered products to prevent re-renders and potential crashes
   const filteredProducts = useMemo(() => {
     if (!Array.isArray(products)) return [];
     return products.filter((p: any) => 
@@ -19,7 +18,6 @@ export default function Sales() {
     );
   }, [products, search]);
 
-  // Safe total calculation
   const total = useMemo(() => {
     if (!Array.isArray(items)) return 0;
     return items.reduce((acc, item) => {
@@ -31,6 +29,7 @@ export default function Sales() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)]">
+      {/* Left Section: Product Selection */}
       <div className="flex-1 space-y-6 overflow-auto pr-2">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -75,12 +74,15 @@ export default function Sales() {
         )}
       </div>
 
+      {/* Right Section: Cart Sidebar */}
       <div className="w-full lg:w-[400px] bg-slate-900 rounded-[40px] shadow-2xl flex flex-col overflow-hidden border border-white/5">
         <div className="p-8 border-b border-white/10 flex justify-between items-center">
           <h2 className="text-white text-xl font-black flex items-center gap-3">
             <ShoppingCart className="text-indigo-400" /> Terminal Cart
           </h2>
-          <span className="bg-indigo-500 text-white text-xs font-black px-3 py-1 rounded-full">{items.length} ITEMS</span>
+          <span className="bg-indigo-500 text-white text-xs font-black px-3 py-1 rounded-full">
+            {items.length} ITEMS
+          </span>
         </div>
 
         <div className="flex-1 overflow-auto p-6 space-y-4">
@@ -90,7 +92,7 @@ export default function Sales() {
                <p className="font-bold text-xs uppercase tracking-widest">Cart is empty</p>
             </div>
           ) : (
-            items.map((item) => (
+            items.map((item: any) => (
               <div key={item.id} className="bg-white/5 p-4 rounded-3xl flex justify-between items-center text-white border border-white/5 hover:bg-white/10 transition-colors">
                 <div>
                   <p className="font-bold text-sm">{item.name}</p>
@@ -98,7 +100,9 @@ export default function Sales() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-black bg-indigo-500/20 text-indigo-400 px-3 py-1.5 rounded-xl">x{item.quantity}</span>
-                  <button onClick={() => removeFromCart(item.id)} className="p-2 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors"><Trash2 size={18}/></button>
+                  <button onClick={() => removeFromCart(item.id)} className="p-2 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors">
+                    <Trash2 size={18}/>
+                  </button>
                 </div>
               </div>
             ))
@@ -121,6 +125,7 @@ export default function Sales() {
           </button>
         </div>
       </div>
+
       {showCheckout && <CheckoutModal onClose={() => setShowCheckout(false)} />}
     </div>
   );
