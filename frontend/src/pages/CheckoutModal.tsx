@@ -1,93 +1,101 @@
 import React, { useState } from "react";
-import { CheckCircle2, CreditCard, X, Printer } from "lucide-react";
+import { CheckCircle2, CreditCard, X, Printer, Loader2, AlertCircle } from "lucide-react";
 import { formatCurrency } from "../utils/format";
+import { api } from "../api/api";
+import { useCart } from "../store/cartStore";
 
 export default function CheckoutModal({ onClose }: { onClose: () => void }) {
+  const { items, clearCart } = useCart();
   const [step, setStep] = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState<number>(12500); 
-  const [expiry, setExpiry] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleExpiry = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length > 2) value = value.substring(0, 2) + "/" + value.substring(2, 4);
-    setExpiry(value);
-  };
+  const total = items.reduce((acc, item) => acc + (Number(item.price) * item.quantity), 0);
 
-  const handlePay = () => {
+  const handlePay = async () => {
+    if (items.length === 0) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError(null);
+    
+    try {
+      await api.post("/pos/checkout", {
+        items,
+        total,
+        paymentMethod: "CARD"
+      });
+      clearCart();
       setStep("success");
-    }, 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Payment processing failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white w-full max-w-[420px] rounded-[32px] shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center z-[150] p-4">
+      <div className="bg-white w-full max-w-[440px] rounded-[40px] shadow-2xl p-10 relative animate-in zoom-in-95 duration-300">
         
-        <button onClick={onClose} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition">
-          <X size={20} />
+        <button onClick={onClose} className="absolute top-8 right-8 text-slate-400 hover:text-slate-600 transition p-2 hover:bg-slate-50 rounded-full">
+          <X size={24} />
         </button>
 
-        <div className="flex items-center gap-3 mb-8">
-           <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-              <CreditCard size={20} />
+        <div className="flex items-center gap-4 mb-8">
+           <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+              <CreditCard size={24} />
            </div>
-           <h2 className="text-xl font-black text-slate-900 tracking-tight">Secure Checkout</h2>
+           <div>
+             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Terminal Payment</h2>
+             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Transaction ID: TX-{Date.now()}</p>
+           </div>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center gap-3 text-xs font-bold">
+            <AlertCircle size={18} /> {error}
+          </div>
+        )}
+
         {step === "form" && (
-          <div className="space-y-4">
-            <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Amount</label>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                className="w-full bg-slate-50 border-none p-4 rounded-2xl text-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1"
-              />
+          <div className="space-y-6">
+            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-center">Amount Due</p>
+              <p className="text-4xl font-black text-indigo-600 text-center">{formatCurrency(total)}</p>
             </div>
 
             <div className="space-y-3">
-              <input placeholder="Card Number" className="w-full bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold" maxLength={16} />
-              <div className="flex gap-3">
-                <input value={expiry} onChange={handleExpiry} placeholder="MM/YY" maxLength={5} className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold" />
-                <input placeholder="CVC" maxLength={3} className="w-1/2 bg-slate-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold" />
+              <input placeholder="Card Number" className="w-full bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-lg" maxLength={16} />
+              <div className="flex gap-4">
+                <input placeholder="MM/YY" maxLength={5} className="w-1/2 bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-center" />
+                <input placeholder="CVC" maxLength={3} className="w-1/2 bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-center" />
               </div>
             </div>
 
             <button
               onClick={handlePay}
-              disabled={loading}
-              className="mt-4 w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+              disabled={loading || total <= 0}
+              className="w-full bg-indigo-600 text-white py-5 rounded-[24px] font-black text-xl hover:bg-indigo-700 transition shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 disabled:opacity-50"
             >
-              {loading ? "Processing Terminal..." : `Pay ${formatCurrency(amount)}`}
+              {loading ? <Loader2 className="animate-spin" /> : `Finalize ${formatCurrency(total)}`}
             </button>
           </div>
         )}
 
         {step === "success" && (
-          <div className="text-center py-4 animate-in fade-in slide-in-from-bottom-4">
-            <div className="mx-auto w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-6">
-              <CheckCircle2 className="text-emerald-500" size={40} />
+          <div className="text-center py-6 animate-in fade-in slide-in-from-bottom-8">
+            <div className="mx-auto w-24 h-24 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-8 shadow-inner">
+              <CheckCircle2 size={56} />
             </div>
 
-            <h3 className="text-2xl font-black text-slate-900">Payment Confirmed</h3>
-            <p className="text-slate-500 mt-2 font-medium italic">Transaction was successful</p>
+            <h3 className="text-3xl font-black text-slate-900">Paid Successfully</h3>
+            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-[0.3em]">Institutional Clearance Granted</p>
 
-            <div className="mt-8 text-sm bg-slate-50 p-6 rounded-[24px] text-left space-y-2 border border-slate-100">
-              <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Reference</span> <span className="font-mono font-bold text-slate-700 uppercase tracking-tighter">SHG-{Math.floor(Math.random() * 999999)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Amount</span> <span className="font-black text-indigo-600">{formatCurrency(amount)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-400 font-bold uppercase">Status</span> <span className="text-emerald-600 font-black">PAID SUCCESS</span></div>
-            </div>
-
-            <div className="flex gap-3 mt-8">
-              <button onClick={() => window.print()} className="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition">
-                <Printer size={18} /> Receipt
+            <div className="mt-10 flex flex-col gap-3">
+              <button onClick={() => window.print()} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-black transition-all">
+                <Printer size={20} /> Print Thermal Receipt
               </button>
-              <button onClick={onClose} className="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition">
-                Done
+              <button onClick={onClose} className="w-full py-5 text-slate-400 font-black hover:text-indigo-600 transition">
+                Return to Dashboard
               </button>
             </div>
           </div>
