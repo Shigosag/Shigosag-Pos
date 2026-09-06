@@ -11,31 +11,30 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U shigosag_admin -d shigosag_pos_prod"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   backend:
     build: 
       context: ./backend
-      dockerfile: Dockerfile
     restart: always
     environment:
       DATABASE_URL: postgresql://${DB_USER:-shigosag_admin}:${DB_PASSWORD:-secure_vault_pwd}@db:5432/shigosag_pos_prod
       JWT_SECRET: ${JWT_SECRET}
       NODE_ENV: production
       PORT: 5000
+      CLIENT_URL: ${CLIENT_URL:-http://localhost}
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "5000:5000"
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "80:80"
-    restart: always
 
 volumes:
   postgres_data:

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { POSService } from "../services/posService.js";
+import { SaleService } from "../services/saleService.js";
 import { prisma } from "../config/db.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const POSController = {
   // Add this back in
@@ -20,9 +22,19 @@ export const POSController = {
     const userId = (req as any).user?.userId;
     try {
       const result = await POSService.processTransfer(userId, req.body);
-      res.status(201).json(result);
+      return ApiResponse.success(res, result, "Transfer successful", 201);
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      return ApiResponse.error(res, error.message, 400);
+    }
+  },
+
+  processRetailCheckout: async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    try {
+      const result = await SaleService.processSale(userId, req.body);
+      return ApiResponse.success(res, result, "Sale completed successfully");
+    } catch (error: any) {
+      return ApiResponse.error(res, error.message, 400);
     }
   },
 
@@ -32,11 +44,11 @@ export const POSController = {
       const txs = await prisma.transaction.findMany({
         where: type ? { type: type as any } : {},
         orderBy: { createdAt: 'desc' },
-        take: Number(limit)
+        take: Math.min(Number(limit), 100)
       });
-      res.json(txs);
+      return ApiResponse.success(res, txs);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch history" });
+      return ApiResponse.error(res, "Failed to fetch ledger history");
     }
   }
 };

@@ -1,18 +1,22 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "shigosag_secret_6482";
+import { env } from "../utils/validateEnv.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader?.startsWith("Bearer ")) {
+    return ApiResponse.error(res, "Authentication required", 401);
+  }
 
-  if (!token) return res.status(401).json({ error: "No token provided" });
+  const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, env.JWT_SECRET);
     (req as any).user = decoded;
     next();
   } catch (err) {
-    res.status(401).json({ error: "Invalid or expired token" });
+    return ApiResponse.error(res, "Session expired or invalid", 401);
   }
 };
