@@ -2,7 +2,7 @@ import React, { ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Home, Package, DollarSign, BarChart3, ShoppingCart, 
-  ChevronLeft, ChevronRight, CreditCard, LogOut, UserX 
+  ChevronLeft, ChevronRight, CreditCard, LogOut, UserX, User as UserIcon 
 } from "lucide-react";
 import CheckoutModal from "../pages/CheckoutModal";
 import { useAuthStore } from "../store/authStore";
@@ -16,7 +16,16 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "error" | "success" } | null>(null);
   
+  const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+
+  // Time-based greeting logic
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
 
   const menuItems = [
     { icon: Home, label: "Dashboard", path: "/" },
@@ -41,52 +50,52 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       {showDeleteModal && (
         <ConfirmModal 
           title="Delete Account?" 
-          message="This will permanently delete your staff records and your ₦10,000,000 balance." 
+          message="This will permanently delete your records and balance." 
           onConfirm={handleDeleteAccount} 
           onCancel={() => setShowDeleteModal(false)} 
         />
       )}
 
-      {/* Sidebar - Indigo Theme */}
-      <aside className={`bg-indigo-600 text-white flex flex-col transition-all duration-300 ${open ? "w-64 p-5" : "w-16 p-3"}`}>
+      <aside className={`bg-indigo-600 text-white flex flex-col transition-all duration-300 ${open ? "w-64 p-5" : "w-20 p-4"}`}>
         <button onClick={() => setOpen(!open)} className={`mb-6 text-white hover:bg-indigo-700 p-2 rounded-lg transition flex items-center ${open ? "justify-start" : "justify-center"}`}>
           {open ? <ChevronLeft size={22} /> : <ChevronRight size={22} />}
         </button>
 
         <div className={`mb-8 flex items-center ${open ? "gap-2" : "justify-center"}`}>
           <ShoppingCart size={24} className="shrink-0" />
-          {open && <span className="font-bold text-xl whitespace-nowrap tracking-tighter">Shigosag POS</span>}
+          {open && <span className="font-bold text-xl tracking-tighter">Shigosag POS</span>}
         </div>
 
         <nav className="flex flex-col gap-3 text-sm">
           {menuItems.map((item) => (
-            <Link key={item.label} to={item.path} className={`flex items-center p-2 rounded-lg hover:bg-indigo-700 transition-colors ${open ? "gap-3" : "justify-center"}`}>
-              <item.icon size={21} className="shrink-0" />
-              {open && <span className="whitespace-nowrap font-medium">{item.label}</span>}
+            <Link key={item.label} to={item.path} className={`flex items-center p-3 rounded-2xl hover:bg-indigo-700 transition-colors ${open ? "gap-3" : "justify-center"}`}>
+              <item.icon size={22} className="shrink-0" />
+              {open && <span className="whitespace-nowrap font-bold">{item.label}</span>}
             </Link>
           ))}
         </nav>
 
         <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-indigo-500">
-          <button onClick={() => logout()} className={`flex items-center p-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-bold ${open ? "gap-3" : "justify-center"}`}>
+          <button onClick={() => logout()} className={`flex items-center p-3 rounded-2xl hover:bg-indigo-700 transition-colors text-sm font-bold ${open ? "gap-3" : "justify-center"}`}>
             <LogOut size={20} />
             {open && "Logout"}
-          </button>
-          
-          <button 
-            onClick={() => setShowDeleteModal(true)}
-            className={`flex items-center p-2 rounded-lg hover:bg-black/20 transition-colors text-sm font-bold text-indigo-100 ${open ? "gap-3" : "justify-center"}`}
-          >
-            <UserX size={20} />
-            {open && "Delete Account"}
           </button>
         </div>
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm p-4 flex justify-between items-center z-10 border-b border-gray-100">
-          <h2 className="font-bold text-gray-700">Terminal #001</h2>
-          <button onClick={() => setOpenCheckout(true)} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2 font-bold shadow-lg shadow-indigo-100">
+        {/* UPDATED HEADER: Welcomes User with Name and Dynamic Greeting */}
+        <header className="bg-white shadow-sm p-4 px-8 flex justify-between items-center z-10 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black">
+                {user?.name?.charAt(0) || "U"}
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{getGreeting()}</p>
+                <h2 className="font-black text-gray-800 leading-tight">Welcome, {user?.name || "Terminal Operator"}</h2>
+             </div>
+          </div>
+          <button onClick={() => setOpenCheckout(true)} className="bg-indigo-600 text-white px-6 py-3 rounded-2xl hover:bg-indigo-700 transition flex items-center gap-2 font-black shadow-lg shadow-indigo-100 text-sm">
             <CreditCard size={18} /> Checkout
           </button>
         </header>
