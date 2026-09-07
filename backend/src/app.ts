@@ -27,18 +27,23 @@ app.use(helmet({
   },
 }));
 app.use(compression());
-app.use(cors({ origin: process.env.CLIENT_URL || "*" }));
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
 // 2. Rate Limiting
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
-	limit: 100, 
+	limit: 200, 
 	standardHeaders: 'draft-7',
 	legacyHeaders: false,
+	message: "Too many requests from this terminal, please wait."
 });
 app.use("/api/", limiter);
 
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 
 // 3. API Routes
 app.use("/api/products", productRoutes);

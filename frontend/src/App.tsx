@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import MainLayout from "./layouts/MainLayout";
 import { useAuthStore } from "./store/authStore";
 
+// Pages
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
@@ -19,10 +20,16 @@ import Airtime from "./pages/Airtime";
 import Data from "./pages/Data";
 import Balance from "./pages/Balance";
 
-// Wrapper: Checks login and only attaches the Sidebar to protected pages
+/**
+ * ProtectedLayout ensures that only authenticated users 
+ * can access internal POS functions.
+ */
 function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);
+  
+  // If no user session found, redirect to login
   if (!user) return <Navigate to="/login" replace />;
+  
   return (
     <MainLayout>
       <Outlet />
@@ -34,11 +41,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* PUBLIC PAGES: Pure full-screen card, no sidebar */}
+        {/* PUBLIC AUTH ROUTES */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* PROTECTED PAGES: Wrapped inside Sidebar + Top Header */}
+        {/* SECURE TERMINAL ROUTES */}
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/pos/transfer" element={<BankTransfer />} />
@@ -53,6 +60,9 @@ export default function App() {
           <Route path="/data" element={<Data />} />
           <Route path="/balance" element={<Balance />} />
         </Route>
+
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
