@@ -1,33 +1,33 @@
-# 🚀 Shigosag POS API Documentation
+# 🚀 Shigosag POS Terminal API v3.0
 
-## 🔐 Authentication
-*All endpoints except `/auth/login` and `/auth/register` require `Authorization: Bearer <token>`.*
+## Base URL
+`https://api.shigosag.com/api`
 
-| Endpoint | Method | Payload | Description |
-| :--- | :--- | :--- | :--- |
-| `/api/auth/register` | POST | `{ name, email, password }` | Create staff account |
-| `/api/auth/login` | POST | `{ email, password }` | Get JWT & User Object |
-| `/api/auth/profile` | GET | - | Get current staff details |
+## Authentication
+Bearer Token required for all protected routes.
+`Authorization: Bearer <JWT_TOKEN>`
 
-## 💸 POS Operations (Nigerian Standard)
-| Endpoint | Method | Payload | Description |
-| :--- | :--- | :--- | :--- |
-| `/api/pos/verify-account` | POST | `{ accountNumber }` | Verify NUBAN (Returns Name) |
-| `/api/pos/process-transfer`| POST | `{ amount, bank, accountName }`| Process & Log Transfer |
+## 🔐 Authentication Endpoints
+| Method | Route | Description |
+| :--- | :--- | :--- |
+| `POST` | `/auth/register` | Create institution account |
+| `POST` | `/auth/login` | Session initiation |
+| `GET` | `/auth/profile` | Current terminal context |
 
-## 📦 Inventory & Sales
-| Endpoint | Method | Params / Payload | Description |
-| :--- | :--- | :--- | :--- |
-| `/api/products` | GET | `?page=1&limit=10` | List products (Paginated) |
-| `/api/products` | POST | `{ name, price, stock }` | Add item (Admin only) |
-| `/api/pos/checkout` | POST | `{ items: [], total: 0 }` | Process a retail sale |
+## 💸 POS Operations (Atomic)
+| Method | Route | Payload |
+| :--- | :--- | :--- |
+| `POST` | `/pos/verify-account` | `{ accountNumber: string }` |
+| `POST` | `/pos/process-transfer` | `{ amount, accountNumber, bank }` |
+| `POST` | `/pos/checkout` | `{ items: [], total: number }` |
 
-## 📋 Response Format
-**Success (200/201):**
-```json
-{ "status": "success", "data": { ... } }
-```
-**Error (400/401/500):**
-```json
-{ "error": "Clear error message here" }
-```
+## 📦 Inventory
+| Method | Route | Description |
+| :--- | :--- | :--- |
+| `GET` | `/products` | List all SKU with stock levels |
+| `POST` | `/products` | Create new SKU (Manager+) |
+
+## Security Features
+- **Rate Limiting:** 200 req / 15 mins per IP.
+- **Serializable Isolation:** Prevents double-spending on transfers.
+- **Soft Deletes:** `deletedAt` logic on all entities.
