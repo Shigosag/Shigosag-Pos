@@ -68,6 +68,12 @@ export default function Dashboard() {
     return (num || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
   };
 
+  // Currency formatting with commas and NGN symbol
+  const format = (val: number | string) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return (num || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+  };
+
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-500">
       
