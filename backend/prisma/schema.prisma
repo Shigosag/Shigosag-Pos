@@ -31,35 +31,36 @@ enum TransactionStatus {
 }
 
 model User {
-  id        String      @id @default(cuid())
-  email     String      @unique
-  password  String
-  name      String
-  role      Role        @default(CASHIER)
-  balance   Decimal     @default(0.00) @db.Decimal(20, 2)
-  isActive  Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  deletedAt DateTime?
-  sales     Sale[]
+  id           String        @id @default(cuid())
+  email        String        @unique
+  password     String
+  name         String
+  role         Role          @default(CASHIER)
+  balance      Decimal       @default(0.00) @db.Decimal(20, 2)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+  sales        Sale[]
   transactions Transaction[]
-  logs      SystemLog[]
+  logs         SystemLog[]
 
   @@index([email, isActive])
   @@index([role])
 }
 
 model Product {
-  id          String    @id @default(cuid())
-  name        String
-  price       Decimal   @db.Decimal(20, 2)
-  stock       Int
-  barcode     String?   @unique
-  category    String    @default("General")
-  isArchived  Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  id         String    @id @default(cuid())
+  name       String
+  price      Decimal   @db.Decimal(20, 2)
+  stock      Int
+  sku        String?   @unique @default(cuid())
+  barcode    String?   @unique
+  category   String    @default("General")
+  isArchived Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
 
   @@index([name, isArchived])
   @@index([barcode])
@@ -72,9 +73,10 @@ model Transaction {
   amount          Decimal           @db.Decimal(20, 2)
   status          TransactionStatus @default(SUCCESS)
   paymentMethod   String            @default("CASH")
-  recipientDetail String?
+  recipientDetail String?           // Bank Name | Account | Name
+  fee             Decimal           @default(0.00) @db.Decimal(20, 2)
   userId          String?
-  user            User?              @relation(fields: [userId], references: [id])
+  user            User?             @relation(fields: [userId], references: [id])
   createdAt       DateTime          @default(now())
 
   @@index([userId, createdAt])
@@ -84,7 +86,7 @@ model Transaction {
 model Sale {
   id        String   @id @default(cuid())
   total     Decimal  @db.Decimal(20, 2)
-  items     Json     // [{id, name, price, quantity}]
+  items     Json     // Array of {id, name, price, quantity}
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
@@ -99,6 +101,7 @@ model SystemLog {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
   ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])

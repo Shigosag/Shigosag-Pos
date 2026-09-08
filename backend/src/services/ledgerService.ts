@@ -1,79 +1,92 @@
 import { prisma } from "../lib/prisma.js";
 import { getIO } from "../lib/socket.js";
-import { TransactionType } from "@prisma/client";
+import { TransactionType, TransactionStatus } from "@prisma/client";
 import { logger } from "../utils/logger.js";
 
 export class LedgerService {
   /**
-   * Executes a financial transaction with automatic retry logic for serialization failures.
-   * Ensures absolute data integrity for balances.
+   * Executes a financial movement with strict serializable isolation.
+   * Prevents race conditions, double-spending, and inconsistent balances.
    */
-  static async executeTransaction(
-    userId: string, 
-    amount: number, 
-    type: TransactionType, 
-    details: string, 
-    metadata: any = {}
-  ) {
-    let retries = 3;
+  static async executeWalletAction(params: {
+    userId: string;
+    amount: number;
+    type: TransactionType;
+    details: string;
+    metadata?: any;
+  }) {
+    const { userId, amount, type, details, metadata = {} } = params;
+    let retries = 5;
+    let delay = 50;
+
     while (retries > 0) {
       try {
         return await prisma.$transaction(async (tx) => {
+          // 1. Lock user record for update
           const user = await tx.user.findUnique({
             where: { id: userId },
             select: { id: true, balance: true, isActive: true }
           });
 
-          if (!user || !user.isActive) throw new Error("Terminal unauthorized");
+          if (!user || !user.isActive) throw new Error("Unauthorized terminal access");
 
-          const numericBalance = Number(user.balance);
-          const numericAmount = Number(amount);
+          const balance = Number(user.balance);
+          const amt = Number(amount);
 
-          // Liquidity Check for outbound funds
-          if (["TRANSFER", "WITHDRAWAL"].includes(type) && numericBalance < numericAmount) {
-            throw new Error("Insufficient terminal liquidity");
+          // 2. Business Logic: Balance Check for outflows
+          const isOutflow = ["TRANSFER", "WITHDRAWAL", "ADJUSTMENT"].includes(type);
+          if (isOutflow && balance < amt) {
+            throw new Error("Insufficient terminal liquidity for this operation");
           }
 
-          // Atomic Balance Update
+          // 3. Update Balance
           const updatedUser = await tx.user.update({
             where: { id: userId },
             data: { 
-              balance: type === "SALE" 
-                ? { increment: numericAmount } 
-                : { decrement: numericAmount } 
+              balance: isOutflow ? { decrement: amt } : { increment: amt }
             }
           });
 
-          // Ledger Entry
+          // 4. Create Immutable Ledger Entry
           const transaction = await tx.transaction.create({
             data: {
-              reference: `SHG-${type.substring(0,3)}-${Date.now()}-${Math.random().toString(36).toUpperCase().slice(-4)}`,
+              reference: `SHG-${type.slice(0,3)}-${Date.now()}-${Math.random().toString(36).toUpperCase().slice(-4)}`,
               type,
-              amount: numericAmount,
+              amount: amt,
+              status: TransactionStatus.SUCCESS,
               recipientDetail: details,
-              paymentMethod: metadata.paymentMethod || "INTERNAL",
+              paymentMethod: metadata.paymentMethod || "TERMINAL",
               userId
             }
           });
 
-          // Real-time Targeted Broadcast (Security: Only to the specific user)
+          // 5. Audit Log
+          await tx.systemLog.create({
+            data: {
+              action: `WALLET_${type}`,
+              userId,
+              details: `Amt: ${amt} | New Bal: ${updatedUser.balance}`
+            }
+          });
+
+          // 6. Real-time Targeted Sync
           const io = getIO();
           io.to(`user:${userId}`).emit("balance:update", updatedUser.balance);
           io.to(`user:${userId}`).emit("transaction:new", transaction);
-
-          logger.info(`Financial Action: ${type} | User: ${userId} | Amt: ${amount}`);
 
           return { transaction, newBalance: updatedUser.balance };
         }, {
           isolationLevel: "Serializable"
         });
       } catch (error: any) {
-        if (error.code === 'P2034') { // Prisma serialization failure code
+        // P2034 is Prisma's Transaction conflict code
+        if (error.code === 'P2034' && retries > 1) {
           retries--;
-          if (retries === 0) throw new Error("Terminal busy, please retry.");
-          await new Promise(r => setTimeout(r, 100)); // Backoff
+          await new Promise(res => setTimeout(res, delay));
+          delay *= 2; // Exponential backoff
           continue;
         }
+        logger.error(`Ledger Error: ${error.message}`);
         throw error;
       }
     }
