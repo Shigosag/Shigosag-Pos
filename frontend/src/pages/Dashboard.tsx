@@ -6,10 +6,7 @@ import {
   Package, Landmark, History, Smartphone, Signal, 
   BarChart3, CreditCard, Activity 
 } from "lucide-react";
-import { 
-  AreaChart, Area, XAxis, YAxis, Tooltip, 
-  CartesianGrid, ResponsiveContainer 
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { useAuthStore } from "../store/authStore";
 import { getSocketUrl } from "../api/api";
 
@@ -17,7 +14,7 @@ export default function Dashboard() {
   const { user, login, token } = useAuthStore();
   const [liveFeed, setLiveFeed] = useState<any[]>([]);
   
-  // Persist Colored Mode selection from LocalStorage
+  // Persist Colored Mode selection
   const [coloredMode, setColoredMode] = useState(() => {
     const saved = localStorage.getItem("terminal_theme");
     return saved !== null ? JSON.parse(saved) : true;
@@ -29,8 +26,7 @@ export default function Dashboard() {
 
   const chartData = [
     { name: "Mon", sales: 1200 }, { name: "Tue", sales: 2100 }, { name: "Wed", sales: 1800 },
-    { name: "Thu", sales: 2400 }, { name: "Fri", sales: 3200 }, { name: "Sat", sales: 2800 },
-    { name: "Sun", sales: 3400 }
+    { name: "Thu", sales: 2400 }, { name: "Fri", sales: 3200 }
   ];
 
   useEffect(() => {
@@ -41,7 +37,7 @@ export default function Dashboard() {
       setLiveFeed((prev) => [tx, ...prev.slice(0, 4)]);
     });
 
-    // Real-time Balance Sync (Atomic Update from Server)
+    // Real-time Balance Sync (Atomic Update)
     socket.on("balance:update", (newBalance) => {
       if (user) {
         login({ ...user, balance: newBalance }, token || "");
@@ -64,6 +60,7 @@ export default function Dashboard() {
     { title: "Analytics", icon: "📊", path: "/analytics", color: "from-slate-600 to-slate-800", desc: "Reports & insights" }
   ];
 
+  // Currency formatting with commas and NGN symbol
   const format = (val: number | string) => {
     const num = typeof val === 'string' ? parseFloat(val) : val;
     return (num || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
@@ -72,10 +69,10 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-500">
       
-      {/* HEADER WITH PERSISTED TOGGLE STYLE */}
+      {/* HEADER SECTION */}
       <div className="flex justify-between items-center bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-red-600 text-white rounded-2xl shadow-lg shadow-red-100">
+          <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100">
             <Rocket size={28} />
           </div>
           <div>
@@ -84,26 +81,25 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            {coloredMode ? "Colored Mode" : "Normal Mode"}
-          </span>
-          <button 
-            onClick={() => setColoredMode(!coloredMode)}
-            className={`relative w-14 h-8 rounded-full transition-all duration-300 border ${
-              coloredMode ? "bg-indigo-600 border-indigo-100" : "bg-gray-200 border-gray-300"
-            }`}
-          >
-            <div className={`absolute top-1 w-5.5 h-5.5 bg-white rounded-full transition-transform duration-300 shadow-sm ${coloredMode ? "translate-x-7" : "translate-x-1"}`} />
-          </button>
-        </div>
+        {/* PERSISTED TOGGLE */}
+        <button 
+          onClick={() => setColoredMode(!coloredMode)}
+          className={`flex items-center gap-3 px-4 py-2 rounded-2xl font-bold text-[10px] transition-all border ${
+            coloredMode ? "bg-indigo-50 text-indigo-600 border-indigo-100" : "bg-white text-gray-400 border-gray-100"
+          }`}
+        >
+          {coloredMode ? "COLORED MODE" : "NORMAL MODE"}
+          <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${coloredMode ? "bg-indigo-600" : "bg-gray-200"}`}>
+            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 shadow-sm ${coloredMode ? "translate-x-6" : "translate-x-1"}`} />
+          </div>
+        </button>
       </div>
 
       {/* SYSTEM STATUS BANNER */}
-      <div className="bg-red-600 text-white p-5 rounded-[1.5rem] flex justify-between items-center shadow-xl shadow-red-100">
+      <div className="bg-indigo-600 text-white p-5 rounded-[1.5rem] flex justify-between items-center shadow-xl shadow-indigo-100 transition-all duration-300 transform hover:-translate-y-1">
         <div>
           <h3 className="font-bold text-sm">System Status</h3>
-          <p className="text-[11px] opacity-90 font-medium">All POS services operational</p>
+          <p className="text-[11px] opacity-90 font-medium">Global networks stable</p>
         </div>
         <div className="text-sm font-bold flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" /> 
@@ -112,7 +108,7 @@ export default function Dashboard() {
       </div>
 
       {/* BALANCE CARD */}
-      <div className="bg-white p-10 rounded-[1.5rem] border border-gray-100 shadow-md flex justify-between items-center group hover:border-red-200 transition-all">
+      <div className="bg-white p-10 rounded-[1.5rem] border border-gray-100 shadow-md flex justify-between items-center group hover:border-indigo-200 transition-all duration-300 transform hover:-translate-y-1">
         <div>
           <p className="text-gray-400 text-[11px] font-black uppercase tracking-[0.2em] mb-2">Available Balance</p>
           <p className="text-5xl font-black text-emerald-600 tracking-tighter">
@@ -133,7 +129,7 @@ export default function Dashboard() {
             to={card.path} 
             className={`p-6 rounded-[1.5rem] shadow-sm hover:shadow-xl transform transition-all duration-300 hover:-translate-y-2 ${
               coloredMode 
-                ? `bg-gradient-to-br ${card.color} text-white shadow-lg shadow-red-50` 
+                ? `bg-gradient-to-br ${card.color} text-white shadow-lg shadow-indigo-50` 
                 : "bg-white text-gray-800 border border-gray-100"
             }`}
           >
@@ -147,57 +143,51 @@ export default function Dashboard() {
       {/* ANALYTICS SECTION */}
       <div className="bg-white p-8 rounded-[1.5rem] border border-gray-100 shadow-sm">
         <h2 className="font-black text-gray-800 mb-8 flex items-center gap-2 uppercase text-xs tracking-widest">
-          <BarChart3 size={18} className="text-red-600" /> Performance Analytics
+          <BarChart3 size={18} className="text-indigo-600" /> Performance Analytics
         </h2>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} />
               <Tooltip 
                 contentStyle={{borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '15px'}} 
               />
-              <Area 
+              <Line 
                 type="monotone" 
                 dataKey="sales" 
-                stroke="#ef4444" 
-                strokeWidth={4} 
-                fillOpacity={1} 
-                fill="url(#colorSales)" 
+                stroke="#4338ca" 
+                strokeWidth={5} 
+                dot={{ r: 6, fill: '#4338ca', strokeWidth: 3, stroke: '#fff' }} 
+                activeDot={{ r: 8, strokeWidth: 0 }}
               />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* STATS SUMMARY GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Gross Sales", val: "₦1.2M", color: "text-red-600" },
+          { label: "Gross Sales", val: "₦1.2M", color: "text-indigo-600" },
           { label: "Daily Trans", val: "124", color: "text-blue-600" },
-          { label: "Customers", val: "2,381", color: "text-purple-600" },
+          { label: "New Clients", val: "42", color: "text-purple-600" },
           { label: "Network", val: "OPTIMAL", color: "text-emerald-600" }
         ].map((s, i) => (
-          <div key={i} className="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100">
+          <div key={i} className="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100 transition-all duration-300 transform hover:-translate-y-1">
             <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">{s.label}</p>
-            <p className={`text-xl font-black ${s.color} mt-1`}>{s.val || s.value}</p>
+            <p className={`text-xl font-black ${s.color} mt-1`}>{s.val}</p>
           </div>
         ))}
       </div>
 
       {/* LIVE SALES FEED */}
-      <div className="mt-10 bg-white rounded-[1.5rem] shadow p-8 border border-gray-100">
-        <h2 className="text-xl font-black text-gray-800 mb-6 uppercase text-xs tracking-widest">Live Activity Stream</h2>
+      <div className="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 p-8">
+        <h2 className="text-xl font-black text-gray-800 mb-6 uppercase text-xs tracking-[0.2em]">Live Sales Activity</h2>
         <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
           <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-600 border border-slate-100 animate-pulse">
-            <div className="w-2 h-2 bg-red-500 rounded-full" /> 🛒 New retail sale completed
+            <div className="w-2 h-2 bg-indigo-500 rounded-full" /> 🛒 New retail sale completed
           </div>
           <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-600 border border-slate-100">
             <div className="w-2 h-2 bg-emerald-500 rounded-full" /> 📦 Product stock updated in inventory
@@ -219,10 +209,10 @@ export default function Dashboard() {
           </h2>
           <div className="space-y-4 text-sm">
             {liveFeed.length === 0 ? (
-              <p className="text-gray-300 font-bold italic py-4 uppercase text-[10px] tracking-widest text-center">Awaiting Terminal Activity...</p>
+              <p className="text-gray-300 font-bold italic py-4">Waiting for terminal activity...</p>
             ) : (
               liveFeed.map((tx, i) => (
-                <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border-l-4 border-red-500 font-bold">
+                <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border-l-4 border-emerald-500 font-bold">
                   <span className="text-gray-700">🛒 {tx.type || "Sale"}</span>
                   <span className="text-emerald-600 font-black">{format(tx.amount || 0)}</span>
                 </div>
@@ -234,17 +224,17 @@ export default function Dashboard() {
         <div className="bg-white p-8 rounded-[1.5rem] shadow-sm border border-gray-100 flex flex-col justify-between">
           <div>
             <h2 className="font-black text-gray-800 mb-3 flex items-center gap-2 uppercase text-xs tracking-widest">
-              <History size={18} className="text-red-600"/> Audit History
+              <History size={18} className="text-indigo-600"/> Audit History
             </h2>
-            <p className="text-gray-400 text-xs font-bold leading-relaxed mb-6">
-              Access the complete ledger of withdrawals, transfers, and system adjustments for this terminal session.
+            <p className="text-gray-400 text-xs font-bold leading-relaxed">
+              Access the complete ledger of withdrawals, transfers, and system adjustments.
             </p>
           </div>
           <Link 
             to="/history" 
-            className="w-full bg-black text-white text-center py-5 rounded-2xl font-black hover:bg-gray-800 transition-all shadow-xl shadow-gray-200 uppercase text-xs tracking-widest"
+            className="mt-8 bg-gray-900 text-white text-center py-5 rounded-2xl font-black hover:bg-black transition-all shadow-xl shadow-gray-200"
           >
-            Open Transaction Logs
+            OPEN TRANSACTION LOGS
           </Link>
         </div>
       </div>
