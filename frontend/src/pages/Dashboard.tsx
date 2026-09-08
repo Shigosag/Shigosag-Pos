@@ -63,11 +63,6 @@ export default function Dashboard() {
     { title: "Analytics", icon: "📊", path: "/analytics", color: "from-slate-600 to-slate-800", desc: "Reports & insights" }
   ], []);
 
-  const format = (val: number | string) => {
-    const num = typeof val === 'string' ? parseFloat(val) : val;
-    return (num || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
-  };
-
   // Currency formatting with commas and NGN symbol
   const format = (val: number | string) => {
     const num = typeof val === 'string' ? parseFloat(val) : val;
