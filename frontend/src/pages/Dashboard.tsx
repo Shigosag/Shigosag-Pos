@@ -74,7 +74,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-500">
       
-      {/* 1. HEADER SECTION (PREVIOUS STYLE) */}
+      {/* 1. HEADER SECTION */}
       <div className="flex justify-between items-center bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100">
@@ -86,7 +86,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* PILL-STYLE THEME TOGGLE (PREVIOUS STYLE) */}
+        {/* PILL-STYLE THEME TOGGLE */}
         <button 
           onClick={toggleColoredMode}
           className={`flex items-center gap-3 px-4 py-2 rounded-2xl font-bold text-[10px] transition-all border ${
@@ -100,7 +100,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* 2. SYSTEM STATUS BANNER (PREVIOUS STYLE) */}
+      {/* 2. SYSTEM STATUS BANNER */}
       <div className={`${networkStatus === 'optimal' ? 'bg-indigo-600' : 'bg-amber-600'} text-white p-5 rounded-[1.5rem] flex justify-between items-center shadow-xl shadow-indigo-100 transition-all duration-300 transform hover:-translate-y-1`}>
         <div>
           <h3 className="font-bold text-sm">System Status</h3>
@@ -114,7 +114,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 3. AVAILABLE BALANCE CARD (PREVIOUS STYLE) */}
+      {/* 3. AVAILABLE BALANCE CARD */}
       <div className="bg-white p-10 rounded-[1.5rem] border border-gray-100 shadow-md flex justify-between items-center group hover:border-indigo-200 transition-all duration-300 transform hover:-translate-y-1">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -132,7 +132,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 4. QUICK ACTIONS GRID (PREVIOUS 2/5 LAYOUT) */}
+      {/* 4. QUICK ACTIONS GRID */}
       <h2 className="text-lg font-black text-gray-800 ml-2">Quick Actions</h2>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {cards.map((card) => (
