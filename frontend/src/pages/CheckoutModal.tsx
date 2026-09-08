@@ -3,14 +3,28 @@ import { CheckCircle2, CreditCard, X, Printer, Loader2, AlertCircle } from "luci
 import { formatCurrency } from "../utils/format";
 import { api } from "../api/api";
 import { useCart } from "../store/cartStore";
+import { useAuthStore } from "../store/authStore";
 
 export default function CheckoutModal({ onClose }: { onClose: () => void }) {
   const { items, clearCart } = useCart();
+  const { user, login, token } = useAuthStore();
   const [step, setStep] = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Form State for UX
+  const [expiry, setExpiry] = useState("");
+
   const total = items.reduce((acc, item) => acc + (Number(item.price) * item.quantity), 0);
+
+  // Auto-format MM/YY
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    if (value.length > 2) {
+      value = value.substring(0, 2) + "/" + value.substring(2, 4);
+    }
+    setExpiry(value);
+  };
 
   const handlePay = async () => {
     if (items.length === 0) return;
@@ -18,11 +32,17 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
     setError(null);
     
     try {
-      await api.post("/pos/checkout", {
+      const res = await api.post("/pos/checkout", {
         items,
         total,
         paymentMethod: "CARD"
       });
+
+      // Professional way: Update the local balance with the new balance returned from server
+      if (user && res.data.data.newBalance) {
+        login({ ...user, balance: res.data.data.newBalance }, token || "");
+      }
+
       clearCart();
       setStep("success");
     } catch (err: any) {
@@ -46,7 +66,7 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
            </div>
            <div>
              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Terminal Payment</h2>
-             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Transaction ID: TX-{Date.now()}</p>
+             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Secure Checkout</p>
            </div>
         </div>
 
@@ -58,16 +78,33 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
 
         {step === "form" && (
           <div className="space-y-6">
+            {/* Amount is READ-ONLY (Professional Standard) */}
             <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-center">Amount Due</p>
               <p className="text-4xl font-black text-indigo-600 text-center">{formatCurrency(total)}</p>
             </div>
 
             <div className="space-y-3">
-              <input placeholder="Card Number" className="w-full bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-lg" maxLength={16} />
+              <input 
+                type="text"
+                placeholder="Card Number" 
+                className="w-full bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-lg" 
+                maxLength={16} 
+              />
               <div className="flex gap-4">
-                <input placeholder="MM/YY" maxLength={5} className="w-1/2 bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-center" />
-                <input placeholder="CVC" maxLength={3} className="w-1/2 bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-center" />
+                <input 
+                  placeholder="MM/YY" 
+                  value={expiry}
+                  onChange={handleExpiryChange}
+                  maxLength={5} 
+                  className="w-1/2 bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-center" 
+                />
+                <input 
+                  type="password"
+                  placeholder="CVC" 
+                  maxLength={3} 
+                  className="w-1/2 bg-slate-50 border-none p-5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-center" 
+                />
               </div>
             </div>
 
@@ -88,14 +125,14 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <h3 className="text-3xl font-black text-slate-900">Paid Successfully</h3>
-            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-[0.3em]">Institutional Clearance Granted</p>
+            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-[0.3em]">Balance Credited: +{formatCurrency(total)}</p>
 
             <div className="mt-10 flex flex-col gap-3">
               <button onClick={() => window.print()} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-black transition-all">
                 <Printer size={20} /> Print Thermal Receipt
               </button>
               <button onClick={onClose} className="w-full py-5 text-slate-400 font-black hover:text-indigo-600 transition">
-                Return to Dashboard
+                Return to Terminal
               </button>
             </div>
           </div>
