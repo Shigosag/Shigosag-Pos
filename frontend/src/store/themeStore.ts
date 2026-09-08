@@ -2,16 +2,16 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface ThemeState {
-  coloredMode: boolean;
-  toggleColoredMode: () => void;
+  mode: 'light' | 'colored' | 'dark';
+  setMode: (mode: 'light' | 'colored' | 'dark') => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      coloredMode: true,
-      toggleColoredMode: () => set((state) => ({ coloredMode: !state.coloredMode })),
+      mode: 'colored',
+      setMode: (mode) => set({ mode }),
     }),
-    { name: "shigosag-theme-settings" }
+    { name: "shigosag-terminal-ui" }
   )
 );
