@@ -2,38 +2,54 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
 import { 
-  Rocket, Wallet, Zap, ShieldCheck, 
-  History, BarChart3, Activity, CreditCard 
+  Rocket, Wallet, ArrowUpRight, ArrowDownLeft, Users, 
+  Package, Landmark, History, Smartphone, Signal, 
+  BarChart3, CreditCard, Activity 
 } from "lucide-react";
 import { 
   LineChart, Line, XAxis, YAxis, Tooltip, 
   CartesianGrid, ResponsiveContainer 
 } from "recharts";
 import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
 import { getSocketUrl } from "../api/api";
-import { formatCurrency } from "../utils/format";
 
 export default function Dashboard() {
   const { user, login, token } = useAuthStore();
+  const { coloredMode, toggleColoredMode } = useThemeStore();
   const [liveFeed, setLiveFeed] = useState<any[]>([]);
-  
-  // Persisted Colored Mode state
-  const [coloredMode, setColoredMode] = useState(() => {
-    const saved = localStorage.getItem("terminal_theme");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
+
+  const chartData = [
+    { name: "Mon", sales: 1200 }, 
+    { name: "Tue", sales: 2100 }, 
+    { name: "Wed", sales: 1800 },
+    { name: "Thu", sales: 2400 }, 
+    { name: "Fri", sales: 3200 }
+  ];
 
   useEffect(() => {
-    localStorage.setItem("terminal_theme", JSON.stringify(coloredMode));
-  }, [coloredMode]);
+    const socket = io(getSocketUrl());
+    
+    // Join a private room based on User ID for secure targeted broadcasts
+    if (user?.id) {
+      socket.emit("join", `user:${user.id}`);
+    }
 
-  // Original Weekly Analytics Data
-  const chartData = useMemo(() => [
-    { name: "Mon", sales: 1200 }, { name: "Tue", sales: 2100 }, { name: "Wed", sales: 1800 },
-    { name: "Thu", sales: 2400 }, { name: "Fri", sales: 3200 }, { name: "Sat", sales: 2800 }, { name: "Sun", sales: 3500 }
-  ], []);
+    // Listen for transaction updates scoped to this terminal
+    socket.on("transaction:new", (tx) => {
+      setLiveFeed((prev) => [tx, ...prev.slice(0, 4)]);
+    });
 
-  // ALL 10 Original Quick Action Cards Preserved
+    // Real-time Balance Sync (Atomic Update via Socket)
+    socket.on("balance:update", (newBalance) => {
+      if (user) {
+        login({ ...user, balance: newBalance }, token || "");
+      }
+    });
+
+    return () => { socket.disconnect(); };
+  }, [user, login, token]);
+
   const cards = useMemo(() => [
     { title: "POS Sales", icon: "🛒", path: "/sales", color: "from-red-500 to-red-600", desc: "Process customer sales" },
     { title: "Products", icon: "📦", path: "/products", color: "from-blue-500 to-blue-600", desc: "Manage inventory" },
@@ -47,190 +63,180 @@ export default function Dashboard() {
     { title: "Analytics", icon: "📊", path: "/analytics", color: "from-slate-600 to-slate-800", desc: "Reports & insights" }
   ], []);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    const socket = io(getSocketUrl());
-    
-    // Security: Join user-specific room
-    socket.emit("join", `user:${user.id}`);
-    
-    socket.on("transaction:new", (tx) => {
-      setLiveFeed((prev) => [tx, ...prev.slice(0, 4)]);
-    });
-
-    socket.on("balance:update", (newBalance) => {
-      login({ ...user, balance: newBalance }, token || "");
-    });
-
-    return () => { socket.disconnect(); };
-  }, [user?.id]);
+  const format = (val: number | string) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return (num || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+  };
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-700">
+    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-500">
       
-      {/* 1. Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm gap-4">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-100">
+      {/* HEADER SECTION */}
+      <div className="flex justify-between items-center bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100">
             <Rocket size={28} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">Shigosag POS</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Institutional Terminal v3.0</p>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Shigosag POS</h1>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Real-time Terminal v3.0</p>
           </div>
         </div>
 
+        {/* PERSISTED THEME TOGGLE */}
         <button 
-          onClick={() => setColoredMode(!coloredMode)}
-          className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl font-black text-[10px] transition-all border ${
-            coloredMode ? "bg-indigo-50 text-indigo-600 border-indigo-100" : "bg-white text-slate-400 border-slate-200"
+          onClick={toggleColoredMode}
+          className={`flex items-center gap-3 px-4 py-2 rounded-2xl font-bold text-[10px] transition-all border ${
+            coloredMode ? "bg-indigo-50 text-indigo-600 border-indigo-100" : "bg-white text-gray-400 border-gray-100"
           }`}
         >
-          {coloredMode ? "COLORED THEME" : "NEUTRAL THEME"}
-          <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${coloredMode ? "bg-indigo-600" : "bg-slate-200"}`}>
+          {coloredMode ? "COLORED MODE" : "NORMAL MODE"}
+          <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${coloredMode ? "bg-indigo-600" : "bg-gray-200"}`}>
             <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 shadow-sm ${coloredMode ? "translate-x-6" : "translate-x-1"}`} />
           </div>
         </button>
       </div>
 
-      {/* 2. System Status Banner */}
-      <div className="bg-slate-900 text-white p-6 rounded-[2rem] flex justify-between items-center shadow-2xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <div className="relative z-10">
-          <h3 className="font-black text-sm uppercase tracking-widest flex items-center gap-2">
-            <Zap size={16} className="text-yellow-400" /> System Integrity
-          </h3>
-          <p className="text-[11px] opacity-60 font-bold mt-1">All global financial nodes are operational</p>
+      {/* SYSTEM STATUS BANNER */}
+      <div className="bg-indigo-600 text-white p-5 rounded-[1.5rem] flex justify-between items-center shadow-xl shadow-indigo-100 transition-all duration-300 transform hover:-translate-y-1">
+        <div>
+          <h3 className="font-bold text-sm">System Status</h3>
+          <p className="text-[11px] opacity-90 font-medium">Global networks stable</p>
         </div>
-        <div className="text-[10px] font-black flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full border border-emerald-500/20 relative z-10">
+        <div className="text-sm font-bold flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" /> 
-           LIVE CONNECTION
+           <span className="animate-pulse">Online</span>
         </div>
       </div>
 
-      {/* 3. Balance Card - Atomic Visualization */}
-      <div className={`p-10 rounded-[2.5rem] shadow-xl flex justify-between items-center transition-all duration-500 border-b-8 border-r-8 ${
-        coloredMode ? "bg-indigo-600 text-white border-indigo-800" : "bg-white text-slate-900 border-slate-200"
-      }`}>
-        <div className="space-y-4">
-          <p className={`text-[11px] font-black uppercase tracking-[0.4em] ${coloredMode ? 'text-indigo-200' : 'text-slate-400'}`}>
-            Total Liquidity
+      {/* BALANCE CARD */}
+      <div className="bg-white p-10 rounded-[1.5rem] border border-gray-100 shadow-md flex justify-between items-center group hover:border-indigo-200 transition-all duration-300 transform hover:-translate-y-1">
+        <div>
+          <p className="text-gray-400 text-[11px] font-black uppercase tracking-[0.2em] mb-2">Available Balance</p>
+          <p className="text-5xl font-black text-emerald-600 tracking-tighter">
+            {format(user?.balance || 0)}
           </p>
-          <h2 className="text-6xl font-black tracking-tighter">
-            {formatCurrency(Number(user?.balance || 0))}
-          </h2>
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black w-fit border ${
-            coloredMode ? 'bg-white/10 border-white/20 text-white' : 'bg-slate-50 border-slate-100 text-slate-500'
-          }`}>
-             <ShieldCheck size={14} /> SECURE VAULT PROTECTED
-          </div>
         </div>
-        <div className={`p-8 rounded-[2.5rem] shadow-inner ${coloredMode ? 'bg-white/10' : 'bg-slate-50'}`}>
-           <Wallet size={48} className={coloredMode ? 'text-white' : 'text-indigo-600'} />
+        <div className="p-5 bg-emerald-50 text-emerald-600 rounded-[2rem] shadow-inner">
+           <Wallet size={40} />
         </div>
       </div>
 
-      {/* 4. Quick Actions Grid - All 10 Items */}
+      {/* QUICK ACTIONS GRID - 10 CARDS UN-OMITTED */}
+      <h2 className="text-lg font-black text-gray-800 ml-2">Quick Actions</h2>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {cards.map((card) => (
           <Link 
             key={card.title} 
             to={card.path} 
-            className={`p-6 rounded-[2rem] shadow-sm hover:shadow-2xl transform transition-all duration-300 hover:-translate-y-2 group ${
+            className={`p-6 rounded-[1.5rem] shadow-sm hover:shadow-xl transform transition-all duration-300 hover:-translate-y-2 ${
               coloredMode 
-                ? `bg-gradient-to-br ${card.color} text-white` 
-                : "bg-white text-slate-800 border border-slate-100 hover:border-indigo-600"
+                ? `bg-gradient-to-br ${card.color} text-white shadow-lg shadow-indigo-50` 
+                : "bg-white text-gray-800 border border-gray-100"
             }`}
           >
-            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{card.icon}</div>
-            <div className="font-black text-xs uppercase tracking-tight">{card.title}</div>
-            <p className={`text-[10px] mt-1 font-bold leading-tight opacity-60`}>{card.desc}</p>
+            <div className="text-4xl mb-4">{card.icon}</div>
+            <div className="font-black text-sm uppercase tracking-tight">{card.title}</div>
+            <p className={`text-[10px] mt-1 font-bold leading-tight opacity-70`}>{card.desc}</p>
           </Link>
         ))}
       </div>
 
-      {/* 5. Performance Analytics Chart */}
-      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-        <div className="flex justify-between items-center mb-10">
-          <h2 className="font-black text-slate-800 flex items-center gap-2 uppercase text-xs tracking-widest">
-            <BarChart3 size={18} className="text-indigo-600" /> Retail Performance
-          </h2>
-          <select className="bg-slate-50 border-none rounded-xl text-[10px] font-black uppercase px-4 py-2 outline-none">
-            <option>Last 7 Days</option>
-            <option>Last 30 Days</option>
-          </select>
-        </div>
-        <div className="h-[350px] w-full">
+      {/* ANALYTICS SECTION - FULL RECHARTS IMPLEMENTATION */}
+      <div className="bg-white p-8 rounded-[1.5rem] border border-gray-100 shadow-sm">
+        <h2 className="font-black text-gray-800 mb-8 flex items-center gap-2 uppercase text-xs tracking-widest">
+          <BarChart3 size={18} className="text-indigo-600" /> Performance Analytics
+        </h2>
+        <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="4 4" stroke="#f1f5f9" vertical={false} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 900}} dy={15} />
-              <YAxis hide />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} />
               <Tooltip 
-                contentStyle={{borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', padding: '20px'}} 
-                itemStyle={{fontWeight: 900, color: '#4338ca'}}
+                contentStyle={{borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '15px'}} 
               />
               <Line 
                 type="monotone" 
                 dataKey="sales" 
                 stroke="#4338ca" 
-                strokeWidth={6} 
-                dot={{ r: 8, fill: '#4338ca', strokeWidth: 4, stroke: '#fff' }} 
-                activeDot={{ r: 10, strokeWidth: 0 }}
+                strokeWidth={5} 
+                dot={{ r: 6, fill: '#4338ca', strokeWidth: 3, stroke: '#fff' }} 
+                activeDot={{ r: 8, strokeWidth: 0 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 6. Footer: Live Feed & Audit Summary */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <h2 className="font-black text-slate-800 mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
-            <Activity size={18} className="text-rose-500"/> Real-time Terminal Feed
+      {/* STATS SUMMARY GRID */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Gross Sales", val: "₦1.2M", color: "text-indigo-600" },
+          { label: "Daily Trans", val: "124", color: "text-blue-600" },
+          { label: "New Clients", val: "42", color: "text-purple-600" },
+          { label: "Network", val: "OPTIMAL", color: "text-emerald-600" }
+        ].map((s, i) => (
+          <div key={i} className="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100 transition-all duration-300 transform hover:-translate-y-1">
+            <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">{s.label}</p>
+            <p className={`text-xl font-black ${s.color} mt-1`}>{s.val}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* LIVE SALES FEED */}
+      <div className="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 p-8">
+        <h2 className="text-xl font-black text-gray-800 mb-6 uppercase text-xs tracking-[0.2em]">Live Sales Activity</h2>
+        <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+          <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-600 border border-slate-100 animate-pulse">
+            <div className="w-2 h-2 bg-indigo-500 rounded-full" /> 🛒 New retail sale completed
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-600 border border-slate-100">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full" /> 📦 Product stock updated in inventory
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-600 border border-slate-100">
+            <div className="w-2 h-2 bg-purple-500 rounded-full" /> 👥 Customer record modified successfully
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-600 border border-slate-100">
+            <div className="w-2 h-2 bg-amber-500 rounded-full" /> 💸 Bank transfer processed to recipient
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER SECTION: LIVE TRANSACTIONS + HISTORY */}
+      <div className="grid md:grid-cols-2 gap-6 mt-8">
+        <div className="bg-white p-8 rounded-[1.5rem] shadow-sm border border-gray-100">
+          <h2 className="font-black text-gray-800 mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
+            <Activity size={18} className="text-red-500"/> Real-time Transactions
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-4 text-sm">
             {liveFeed.length === 0 ? (
-              // Original Placeholder Logic
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-[11px] font-black text-slate-400 border border-slate-100 italic">
-                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" /> Waiting for terminal activity...
-                </div>
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between text-[11px] font-black text-slate-600 border border-slate-100">
-                  <span>🛒 New retail sale processed</span>
-                  <span className="text-slate-400">刚刚</span>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between text-[11px] font-black text-slate-600 border border-slate-100">
-                  <span>💸 Bank transfer settlement completed</span>
-                  <span className="text-slate-400">2 mins ago</span>
-                </div>
-              </div>
+              <p className="text-gray-300 font-bold italic py-4">Waiting for terminal activity...</p>
             ) : (
               liveFeed.map((tx, i) => (
-                <div key={i} className="flex justify-between items-center p-5 bg-indigo-50/30 rounded-3xl border-l-4 border-indigo-600 font-black animate-in slide-in-from-right-4">
-                  <span className="text-slate-700 text-sm">🛒 {tx.type}</span>
-                  <span className="text-indigo-600">{formatCurrency(tx.amount || 0)}</span>
+                <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border-l-4 border-emerald-500 font-bold">
+                  <span className="text-gray-700">🛒 {tx.type || "Sale"}</span>
+                  <span className="text-emerald-600 font-black">{format(tx.amount || 0)}</span>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        <div className="bg-slate-900 p-10 rounded-[2.5rem] shadow-sm text-white flex flex-col justify-between group overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
-          <div className="relative z-10">
-            <h2 className="font-black text-indigo-400 mb-4 flex items-center gap-2 uppercase text-xs tracking-widest">
-              <History size={18} /> Financial Audit Trail
+        <div className="bg-white p-8 rounded-[1.5rem] shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div>
+            <h2 className="font-black text-gray-800 mb-3 flex items-center gap-2 uppercase text-xs tracking-widest">
+              <History size={18} className="text-indigo-600"/> Audit History
             </h2>
-            <p className="text-slate-400 text-xs font-bold leading-relaxed max-w-sm">
-              Access the complete institutional ledger. Export CSV or PDF statements for regulatory compliance and internal reconciliation.
+            <p className="text-gray-400 text-xs font-bold leading-relaxed">
+              Access the complete ledger of withdrawals, transfers, and system adjustments.
             </p>
           </div>
           <Link 
             to="/history" 
-            className="mt-12 bg-white text-slate-900 text-center py-6 rounded-[1.5rem] font-black text-sm hover:bg-indigo-50 transition-all shadow-2xl relative z-10"
+            className="mt-8 bg-gray-900 text-white text-center py-5 rounded-2xl font-black hover:bg-black transition-all shadow-xl shadow-gray-200"
           >
-            OPEN TRANSACTION LEDGER
+            OPEN TRANSACTION LOGS
           </Link>
         </div>
       </div>
