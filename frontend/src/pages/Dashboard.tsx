@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
 import { 
@@ -6,38 +6,41 @@ import {
   Package, Landmark, History, Smartphone, Signal, 
   BarChart3, CreditCard, Activity 
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import { 
+  LineChart, Line, XAxis, YAxis, Tooltip, 
+  CartesianGrid, ResponsiveContainer 
+} from "recharts";
 import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
 import { getSocketUrl } from "../api/api";
 
 export default function Dashboard() {
   const { user, login, token } = useAuthStore();
+  const { coloredMode, toggleColoredMode } = useThemeStore();
   const [liveFeed, setLiveFeed] = useState<any[]>([]);
-  
-  // Persist Colored Mode selection
-  const [coloredMode, setColoredMode] = useState(() => {
-    const saved = localStorage.getItem("terminal_theme");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("terminal_theme", JSON.stringify(coloredMode));
-  }, [coloredMode]);
 
   const chartData = [
-    { name: "Mon", sales: 1200 }, { name: "Tue", sales: 2100 }, { name: "Wed", sales: 1800 },
-    { name: "Thu", sales: 2400 }, { name: "Fri", sales: 3200 }
+    { name: "Mon", sales: 1200 }, 
+    { name: "Tue", sales: 2100 }, 
+    { name: "Wed", sales: 1800 },
+    { name: "Thu", sales: 2400 }, 
+    { name: "Fri", sales: 3200 }
   ];
 
   useEffect(() => {
     const socket = io(getSocketUrl());
     
-    // Listen for transaction updates
+    // Join a private room based on User ID for secure targeted broadcasts
+    if (user?.id) {
+      socket.emit("join", `user:${user.id}`);
+    }
+
+    // Listen for transaction updates scoped to this terminal
     socket.on("transaction:new", (tx) => {
       setLiveFeed((prev) => [tx, ...prev.slice(0, 4)]);
     });
 
-    // Real-time Balance Sync (Atomic Update)
+    // Real-time Balance Sync (Atomic Update via Socket)
     socket.on("balance:update", (newBalance) => {
       if (user) {
         login({ ...user, balance: newBalance }, token || "");
@@ -47,7 +50,7 @@ export default function Dashboard() {
     return () => { socket.disconnect(); };
   }, [user, login, token]);
 
-  const cards = [
+  const cards = useMemo(() => [
     { title: "POS Sales", icon: "🛒", path: "/sales", color: "from-red-500 to-red-600", desc: "Process customer sales" },
     { title: "Products", icon: "📦", path: "/products", color: "from-blue-500 to-blue-600", desc: "Manage inventory" },
     { title: "Customers", icon: "👥", path: "/customers", color: "from-purple-500 to-purple-600", desc: "Customer management" },
@@ -58,7 +61,7 @@ export default function Dashboard() {
     { title: "Data", icon: "📶", path: "/data", color: "from-indigo-500 to-indigo-600", desc: "Buy data plans" },
     { title: "Balance", icon: "💰", path: "/balance", color: "from-teal-500 to-teal-600", desc: "Check account balance" },
     { title: "Analytics", icon: "📊", path: "/analytics", color: "from-slate-600 to-slate-800", desc: "Reports & insights" }
-  ];
+  ], []);
 
   // Currency formatting with commas and NGN symbol
   const format = (val: number | string) => {
@@ -81,9 +84,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* PERSISTED TOGGLE */}
+        {/* PERSISTED THEME TOGGLE */}
         <button 
-          onClick={() => setColoredMode(!coloredMode)}
+          onClick={toggleColoredMode}
           className={`flex items-center gap-3 px-4 py-2 rounded-2xl font-bold text-[10px] transition-all border ${
             coloredMode ? "bg-indigo-50 text-indigo-600 border-indigo-100" : "bg-white text-gray-400 border-gray-100"
           }`}
@@ -120,7 +123,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* QUICK ACTIONS GRID */}
+      {/* QUICK ACTIONS GRID - 10 CARDS UN-OMITTED */}
       <h2 className="text-lg font-black text-gray-800 ml-2">Quick Actions</h2>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {cards.map((card) => (
@@ -135,12 +138,12 @@ export default function Dashboard() {
           >
             <div className="text-4xl mb-4">{card.icon}</div>
             <div className="font-black text-sm uppercase tracking-tight">{card.title}</div>
-            <p className={`text-[10px] mt-1 font-bold leading-tight opacity-70`}>{card.desc || card.description}</p>
+            <p className={`text-[10px] mt-1 font-bold leading-tight opacity-70`}>{card.desc}</p>
           </Link>
         ))}
       </div>
 
-      {/* ANALYTICS SECTION */}
+      {/* ANALYTICS SECTION - FULL RECHARTS IMPLEMENTATION */}
       <div className="bg-white p-8 rounded-[1.5rem] border border-gray-100 shadow-sm">
         <h2 className="font-black text-gray-800 mb-8 flex items-center gap-2 uppercase text-xs tracking-widest">
           <BarChart3 size={18} className="text-indigo-600" /> Performance Analytics

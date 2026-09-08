@@ -8,7 +8,7 @@ datasource db {
 }
 
 enum Role {
-  ADMIN
+  SUPERADMIN
   MANAGER
   CASHIER
 }
@@ -35,15 +35,17 @@ model User {
   password  String
   name      String
   role      Role        @default(CASHIER)
-  balance   Decimal     @default(10000000.00) @db.Decimal(20, 2)
+  balance   Decimal     @default(0.00) @db.Decimal(20, 2)
   isActive  Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   deletedAt DateTime?
   sales     Sale[]
+  transactions Transaction[]
   logs      SystemLog[]
 
   @@index([email, isActive])
+  @@index([role])
 }
 
 model Product {
@@ -59,6 +61,7 @@ model Product {
   deletedAt   DateTime?
 
   @@index([name, isArchived])
+  @@index([barcode])
 }
 
 model Transaction {
@@ -69,10 +72,12 @@ model Transaction {
   status          TransactionStatus @default(SUCCESS)
   paymentMethod   String            @default("CASH")
   recipientDetail String?
-  userId          String?
+  userId          String
+  user            User              @relation(fields: [userId], references: [id])
   createdAt       DateTime          @default(now())
 
-  @@index([reference, createdAt, type])
+  @@index([userId, createdAt])
+  @@index([reference])
 }
 
 model Sale {

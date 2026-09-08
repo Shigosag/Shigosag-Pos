@@ -1,61 +1,81 @@
-import { prisma } from "../lib/db.js";
-import { io } from "../server.js";
+import { prisma } from "../lib/prisma.js";
+import { getIO } from "../lib/socket.js";
 import { TransactionType } from "@prisma/client";
+import { logger } from "../utils/logger.js";
 
 export class LedgerService {
-  static async executeTransaction(userId: string, amount: number, type: TransactionType, details: string, metadata: any = {}) {
-    return await prisma.$transaction(async (tx) => {
-      // 1. Lock user record for update (Pessimistic concurrency control)
-      const user = await tx.user.findUnique({
-        where: { id: userId },
-        select: { id: true, balance: true }
-      });
+  /**
+   * Executes a financial transaction with automatic retry logic for serialization failures.
+   * Ensures absolute data integrity for balances.
+   */
+  static async executeTransaction(
+    userId: string, 
+    amount: number, 
+    type: TransactionType, 
+    details: string, 
+    metadata: any = {}
+  ) {
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        return await prisma.$transaction(async (tx) => {
+          const user = await tx.user.findUnique({
+            where: { id: userId },
+            select: { id: true, balance: true, isActive: true }
+          });
 
-      if (!user) throw new Error("Unauthorized terminal access");
+          if (!user || !user.isActive) throw new Error("Terminal unauthorized");
 
-      const numericBalance = Number(user.balance);
-      
-      // Validation for outbound funds
-      if (["TRANSFER", "WITHDRAWAL", "SALE"].includes(type) && numericBalance < amount) {
-        throw new Error("Insufficient terminal liquidity");
+          const numericBalance = Number(user.balance);
+          const numericAmount = Number(amount);
+
+          // Liquidity Check for outbound funds
+          if (["TRANSFER", "WITHDRAWAL"].includes(type) && numericBalance < numericAmount) {
+            throw new Error("Insufficient terminal liquidity");
+          }
+
+          // Atomic Balance Update
+          const updatedUser = await tx.user.update({
+            where: { id: userId },
+            data: { 
+              balance: type === "SALE" 
+                ? { increment: numericAmount } 
+                : { decrement: numericAmount } 
+            }
+          });
+
+          // Ledger Entry
+          const transaction = await tx.transaction.create({
+            data: {
+              reference: `SHG-${type.substring(0,3)}-${Date.now()}-${Math.random().toString(36).toUpperCase().slice(-4)}`,
+              type,
+              amount: numericAmount,
+              recipientDetail: details,
+              paymentMethod: metadata.paymentMethod || "INTERNAL",
+              userId
+            }
+          });
+
+          // Real-time Targeted Broadcast (Security: Only to the specific user)
+          const io = getIO();
+          io.to(`user:${userId}`).emit("balance:update", updatedUser.balance);
+          io.to(`user:${userId}`).emit("transaction:new", transaction);
+
+          logger.info(`Financial Action: ${type} | User: ${userId} | Amt: ${amount}`);
+
+          return { transaction, newBalance: updatedUser.balance };
+        }, {
+          isolationLevel: "Serializable"
+        });
+      } catch (error: any) {
+        if (error.code === 'P2034') { // Prisma serialization failure code
+          retries--;
+          if (retries === 0) throw new Error("Terminal busy, please retry.");
+          await new Promise(r => setTimeout(r, 100)); // Backoff
+          continue;
+        }
+        throw error;
       }
-
-      // 2. Update Balance
-      const updatedUser = await tx.user.update({
-        where: { id: userId },
-        data: { 
-          balance: type === "SALE" ? { increment: amount } : { decrement: amount } 
-        }
-      });
-
-      // 3. Create Transaction Record
-      const transaction = await tx.transaction.create({
-        data: {
-          reference: `SHG-${type.substring(0,3)}-${Date.now()}`,
-          type,
-          amount,
-          recipientDetail: details,
-          paymentMethod: metadata.paymentMethod || "TERMINAL_INTERNAL",
-          userId
-        }
-      });
-
-      // 4. System Audit Log
-      await tx.systemLog.create({
-        data: {
-          action: type,
-          userId,
-          details: `Amount: ${amount} | Ref: ${transaction.reference}`
-        }
-      });
-
-      // 5. Emit real-time update
-      io.emit("transaction:new", transaction);
-      io.to(`user:${userId}`).emit("balance:update", updatedUser.balance);
-
-      return { transaction, newBalance: updatedUser.balance };
-    }, {
-      isolationLevel: "Serializable"
-    });
+    }
   }
 }

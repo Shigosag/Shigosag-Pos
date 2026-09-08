@@ -12,6 +12,8 @@ export const useThemeStore = create<ThemeState>()(
       coloredMode: true,
       toggleColoredMode: () => set((state) => ({ coloredMode: !state.coloredMode })),
     }),
-    { name: "shigosag-theme-settings" }
+    { 
+      name: "shigosag-theme-config" 
+    }
   )
 );
