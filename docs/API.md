@@ -1,33 +1,27 @@
-# 🚀 Shigosag POS Terminal API v3.0
-
-## Base URL
-`https://api.shigosag.com/api`
+# 🛡️ Shigosag POS Terminal API v4.0
 
 ## Authentication
-Bearer Token required for all protected routes.
-`Authorization: Bearer <JWT_TOKEN>`
+All protected routes require a `Bearer` token.
+`Authorization: Bearer <JWT_SECRET>`
 
-## 🔐 Authentication Endpoints
-| Method | Route | Description |
+## Endpoints
+
+### 💰 POS Operations
+| Method | Route | Payload | Isolation |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/pos/checkout` | `{ items: CartItem[], total: number }` | Serializable |
+| `POST` | `/pos/transfer` | `{ amount, bank, accountNumber }` | Serializable |
+| `POST` | `/pos/verify-account` | `{ accountNumber }` | Mock/Read |
+
+### 📦 Inventory Management
+| Method | Route | Permission |
 | :--- | :--- | :--- |
-| `POST` | `/auth/register` | Create institution account |
-| `POST` | `/auth/login` | Session initiation |
-| `GET` | `/auth/profile` | Current terminal context |
+| `GET` | `/products` | PUBLIC |
+| `POST` | `/products` | MANAGER+ |
+| `PATCH` | `/products/:id` | MANAGER+ |
 
-## 💸 POS Operations (Atomic)
-| Method | Route | Payload |
-| :--- | :--- | :--- |
-| `POST` | `/pos/verify-account` | `{ accountNumber: string }` |
-| `POST` | `/pos/process-transfer` | `{ amount, accountNumber, bank }` |
-| `POST` | `/pos/checkout` | `{ items: [], total: number }` |
-
-## 📦 Inventory
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| `GET` | `/products` | List all SKU with stock levels |
-| `POST` | `/products` | Create new SKU (Manager+) |
-
-## Security Features
-- **Rate Limiting:** 200 req / 15 mins per IP.
-- **Serializable Isolation:** Prevents double-spending on transfers.
-- **Soft Deletes:** `deletedAt` logic on all entities.
+## Error Codes
+- `400`: Validation Error (Zod)
+- `401`: Unauthorized / Session Expired
+- `403`: Insufficient Permission (RBAC)
+- `409`: Conflict (Transaction Contention - Retry required)
