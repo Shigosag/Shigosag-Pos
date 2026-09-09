@@ -1,5 +1,6 @@
-import { prisma } from "../config/db.js";
-import { io } from "../server.js";
+import { prisma } from "../lib/prisma.js";
+import { getIO } from "../lib/socket.js";
+import { TransactionType, TransactionStatus } from "@prisma/client";
 
 export class POSService {
   static async processTransfer(userId: string, data: {
@@ -8,58 +9,66 @@ export class POSService {
     bankName: string;
     accountName: string;
   }) {
-    // High isolation to prevent race conditions (double-spending)
-    return await prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({ 
+    const amountNum = Number(data.amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      throw new Error("Invalid transfer amount");
+    }
+
+    return await (prisma as any).$transaction(async (tx: any) => {
+      const user = await tx.user.findUnique({
         where: { id: userId },
-        select: { balance: true, id: true }
+        select: { id: true, balance: true, isActive: true }
       });
-      
-      if (!user || Number(user.balance) < data.amount) {
-        throw new Error("Insufficient institutional balance");
+
+      if (!user || !user.isActive) {
+        throw new Error("Terminal operator session inactive or invalid");
       }
+
+      if (Number(user.balance) < amountNum) {
+        throw new Error("Insufficient institutional terminal balance");
+      }
+
+      const reference = `SHG-TX-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
       const transaction = await tx.transaction.create({
         data: {
-          reference: `SHG-TX-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-          type: "TRANSFER",
-          amount: data.amount,
+          reference,
+          type: "TRANSFER" as TransactionType,
+          amount: amountNum,
           recipientDetail: `${data.bankName} | ${data.accountNumber} | ${data.accountName}`,
-          status: "SUCCESS"
+          paymentMethod: "NIP_TRANSFER",
+          status: TransactionStatus.SUCCESS,
+          userId: user.id
         }
       });
 
       const updatedUser = await tx.user.update({
         where: { id: userId },
-        data: { balance: { decrement: data.amount } }
+        data: { balance: { decrement: amountNum } },
+        select: { balance: true }
       });
 
-      // Log the critical financial action
       await tx.systemLog.create({
         data: {
           action: "TRANSFER_OUT",
-          userId,
-          details: `Transfer of ${data.amount} to ${data.accountNumber}`
+          userId: user.id,
+          details: `Transfer of ₦${amountNum} to ${data.accountNumber} (${data.bankName})`
         }
       });
 
-      io.emit("transaction:new", transaction);
-      return { transaction, newBalance: updatedUser.balance };
+      try {
+        const io = getIO();
+        io.to(`user:${userId}`).emit("balance:update", updatedUser.balance);
+        io.to(`user:${userId}`).emit("transaction:new", transaction);
+        io.emit("transaction:new", transaction);
+      } catch (_) {}
+
+      return {
+        transaction,
+        newBalance: updatedUser.balance
+      };
     }, {
       isolationLevel: "Serializable"
     });
-  }
-
-  static async getHistory(page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit;
-    const [total, items] = await Promise.all([
-      prisma.transaction.count(),
-      prisma.transaction.findMany({
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' }
-      })
-    ]);
-    return { items, total, pages: Math.ceil(total / limit) };
   }
 }
