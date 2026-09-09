@@ -19,17 +19,12 @@ import History from "./pages/History";
 import Airtime from "./pages/Airtime";
 import Data from "./pages/Data";
 import Balance from "./pages/Balance";
+import Settings from "./pages/Settings";
 
-/**
- * ProtectedLayout ensures that only authenticated users 
- * can access internal POS functions.
- */
 function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);
-  
-  // If no user session found, redirect to login
   if (!user) return <Navigate to="/login" replace />;
-  
+
   return (
     <MainLayout>
       <Outlet />
@@ -59,6 +54,7 @@ export default function App() {
           <Route path="/airtime" element={<Airtime />} />
           <Route path="/data" element={<Data />} />
           <Route path="/balance" element={<Balance />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
 
         {/* FALLBACK */}
