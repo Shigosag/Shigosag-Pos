@@ -18,7 +18,7 @@ server.listen(PORT, () => {
       "",
       chalk.blue(`🌐 Port: ${PORT}`),
       chalk.green("🔒 Security & Ledger Engine Active"),
-      chalk.indigo("⚡ Database & Real-Time Sync Ready")
+      chalk.magenta("⚡ Database & Real-Time Sync Ready")
     ].join("\n"),
     { padding: 1, margin: 1, borderStyle: "round", borderColor: "cyan" }
   );
