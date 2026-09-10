@@ -78,8 +78,8 @@ model Transaction {
   paymentMethod   String            @default("CASH")
   recipientDetail String?
   fee             Decimal           @default(0.00) @db.Decimal(20, 2)
-  userId          String
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
