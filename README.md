@@ -67,40 +67,112 @@ https://shigosag-pos-juwyi.faable.link/
 ```txt
 Shigosag-Pos/
 │
-├─ backend/
-│  ├─ prisma/
-│  │  └─ schema.prisma
-│  ├─ src/
-│  │  ├─ controllers/
-│  │  ├─ routes/
-│  │  ├─ middlewares/
-│  │  ├─ services/
-│  │  └─ index.ts
-│  ├─ package.json
-│  └─ tsconfig.json
+├── backend/
+│   ├── prisma/
+│   │   └── schema.prisma
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── db.ts
+│   │   ├── controllers/
+│   │   │   ├── authController.ts
+│   │   │   ├── posController.ts
+│   │   │   └── productController.ts
+│   │   ├── lib/
+│   │   │   ├── db.ts
+│   │   │   ├── prisma.ts
+│   │   │   └── socket.ts
+│   │   ├── middleware/
+│   │   │   ├── authMiddleware.ts
+│   │   │   ├── errorHandler.ts
+│   │   │   ├── rbac.ts
+│   │   │   ├── roleMiddleware.ts
+│   │   │   └── validate.ts
+│   │   ├── routes/
+│   │   │   ├── authRoutes.ts
+│   │   │   ├── payment.routes.ts
+│   │   │   ├── posRoutes.ts
+│   │   │   └── productRoutes.ts
+│   │   ├── services/
+│   │   │   ├── ledgerService.ts
+│   │   │   ├── posService.ts
+│   │   │   ├── productService.ts
+│   │   │   └── saleService.ts
+│   │   ├── utils/
+│   │   │   ├── ApiResponse.ts
+│   │   │   ├── logger.ts
+│   │   │   └── validateEnv.ts
+│   │   ├── validations/
+│   │   │   └── productValidator.ts
+│   │   ├── app.ts
+│   │   └── server.ts
+│   ├── .env
+│   ├── Dockerfile
+│   ├── package.json
+│   └── tsconfig.json
 │
-├─ frontend/
-│  ├─ public/
-│  ├─ src/
-│  │  ├─ components/
-│  │  ├─ layouts/
-│  │  ├─ pages/
-│  │  ├─ hooks/
-│  │  ├─ utils/
-│  │  ├─ App.tsx
-│  │  └─ main.tsx
-│  ├─ package.json
-│  └─ vite.config.ts
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── api.ts
+│   │   ├── components/
+│   │   │   ├── AuthLayout.tsx
+│   │   │   ├── ConfirmModal.tsx
+│   │   │   ├── ProductCard.tsx
+│   │   │   └── Toast.tsx
+│   │   ├── hooks/
+│   │   │   └── useProducts.ts
+│   │   ├── layouts/
+│   │   │   └── MainLayout.tsx
+│   │   ├── pages/
+│   │   │   ├── Auth/
+│   │   │   │   ├── Login.tsx
+│   │   │   │   └── Register.tsx
+│   │   │   ├── POS/
+│   │   │   │   └── BankTransfer.tsx
+│   │   │   ├── Airtime.tsx
+│   │   │   ├── Analytics.tsx
+│   │   │   ├── Balance.tsx
+│   │   │   ├── CheckoutModal.tsx
+│   │   │   ├── Customers.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Data.tsx
+│   │   │   ├── History.tsx
+│   │   │   ├── Products.tsx
+│   │   │   ├── Sales.tsx
+│   │   │   ├── Settings.tsx
+│   │   │   ├── Transfers.tsx
+│   │   │   └── Withdraw.tsx
+│   │   ├── store/
+│   │   │   ├── authStore.ts
+│   │   │   ├── cartStore.ts
+│   │   │   └── themeStore.ts
+│   │   ├── utils/
+│   │   │   └── format.ts
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── Dockerfile
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
 │
-├─ mobile/
-│  ├─ assets/
-│  ├─ components/
-│  ├─ screens/
-│  ├─ App.tsx
-│  └─ package.json
+├── mobile/
+│   ├── assets/
+│   ├── components/
+│   ├── screens/
+│   ├── App.tsx
+│   └── package.json
 │
-├─ docker-compose.yml
-└─ README.md
+├── docs/
+│   ├── API.md
+│   └── ARCHITECTURE.md
+│
+├── .gitignore
+├── docker-compose.yml
+├── LICENSE.txt
+├── package.json
+└── README.md
 ```
 ----
 
