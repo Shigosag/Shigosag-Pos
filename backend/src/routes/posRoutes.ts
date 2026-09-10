@@ -6,6 +6,7 @@ const router = Router();
 
 router.post("/verify-account", authMiddleware, POSController.verifyAccountNumber);
 router.post("/process-transfer", authMiddleware, POSController.processTransfer);
+router.post("/transfer", authMiddleware, POSController.processTransfer);
 router.post("/checkout", authMiddleware, POSController.processRetailCheckout);
 router.get("/transactions", authMiddleware, POSController.getTransactions);
 

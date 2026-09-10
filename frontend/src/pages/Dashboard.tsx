@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
-import { getSocketUrl } from "../api/api";
+import { getSocketUrl, api } from "../api/api";
 
 export default function Dashboard() {
   const { user, login, token } = useAuthStore();
@@ -30,28 +30,68 @@ export default function Dashboard() {
     { name: "Fri", sales: 3200 }
   ];
 
+  // 1. Initial Ledger Hydration & Socket Connection
   useEffect(() => {
-    const socket = io(getSocketUrl(), { auth: { token } });
+    let isMounted = true;
+
+    // Fetch initial transactions for feed
+    api.get("/pos/transactions?limit=5")
+      .then((res) => {
+        if (!isMounted) return;
+        const items = res.data?.data?.items || res.data?.data || [];
+        if (Array.isArray(items) && items.length > 0) {
+          setLiveFeed(items.slice(0, 5));
+        }
+      })
+      .catch(() => {
+        // Fallback gracefully if network is booting up
+      });
+
+    const socket = io(getSocketUrl(), {
+      transports: ["websocket", "polling"],
+      auth: { token }
+    });
     
     if (user?.id) {
       socket.emit("join", `user:${user.id}`);
     }
 
-    socket.on("connect_error", () => setNetworkStatus('degraded'));
-    socket.on("connect", () => setNetworkStatus('optimal'));
+    socket.on("connect", () => {
+      if (isMounted) setNetworkStatus('optimal');
+    });
+
+    socket.on("connect_error", () => {
+      if (isMounted) setNetworkStatus('degraded');
+    });
+
+    socket.on("disconnect", () => {
+      if (isMounted) setNetworkStatus('degraded');
+    });
 
     socket.on("transaction:new", (tx) => {
+      if (!isMounted) return;
       setLiveFeed((prev) => [tx, ...prev.slice(0, 4)]);
     });
 
+    socket.on("sale:new", (payload) => {
+      if (!isMounted) return;
+      if (payload?.transaction) {
+        setLiveFeed((prev) => [payload.transaction, ...prev.slice(0, 4)]);
+      }
+    });
+
     socket.on("balance:update", (newBalance) => {
+      if (!isMounted) return;
       if (user) {
         login({ ...user, balance: newBalance }, token || "");
       }
     });
 
-    return () => { socket.disconnect(); };
-  }, [user?.id, login, token]);
+    return () => { 
+      isMounted = false;
+      socket.disconnect(); 
+    };
+  }, [user?.id, token]);
 
   const cards = useMemo(() => [
     { title: "POS Sales", icon: "🛒", path: "/sales", color: "from-red-500 to-red-600", desc: "Process customer sales" },

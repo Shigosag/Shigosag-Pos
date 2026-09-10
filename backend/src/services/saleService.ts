@@ -1,28 +1,36 @@
-import { prisma } from "../config/db.js";
-import { io } from "../server.js";
-import { TransactionType } from "@prisma/client";
+import { prisma } from "../lib/prisma.js";
+import { getIO } from "../lib/socket.js";
+import { TransactionType, TransactionStatus } from "@prisma/client";
 
 export class SaleService {
-  static async processSale(userId: string, payload: { items: any[]; total: number }) {
-    // High-isolation transaction to ensure data integrity
-    return await prisma.$transaction(async (tx) => {
-      // 1. Verify User exists and is active
-      const user = await tx.user.findUnique({ 
+  static async processSale(userId: string, payload: { items: any[]; total: number; paymentMethod?: string }) {
+    if (!payload.items || !Array.isArray(payload.items) || payload.items.length === 0) {
+      throw new Error("Cannot checkout with an empty cart");
+    }
+
+    const totalAmount = Number(payload.total);
+    if (isNaN(totalAmount) || totalAmount <= 0) {
+      throw new Error("Invalid sale total calculation");
+    }
+
+    return await (prisma as any).$transaction(async (tx: any) => {
+      const user = await tx.user.findUnique({
         where: { id: userId },
         select: { id: true, balance: true, isActive: true }
       });
-      
+
       if (!user || !user.isActive) {
         throw new Error("Terminal operator not authorized or inactive");
       }
 
-      // 2. Atomic Stock Validation & Update
+      // 1. Stock validation and decrement
       for (const item of payload.items) {
         const product = await tx.product.findUnique({ where: { id: item.id } });
-        
-        if (!product) throw new Error(`Product ${item.name} not found`);
+        if (!product) {
+          throw new Error(`Product ${item.name || item.id} not found`);
+        }
         if (product.stock < item.quantity) {
-          throw new Error(`Insufficient stock for ${item.name}. Available: ${product.stock}`);
+          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}`);
         }
 
         await tx.product.update({
@@ -31,45 +39,61 @@ export class SaleService {
         });
       }
 
-      // 3. Create Retail Sale Record
+      // 2. Persist Sale record
       const sale = await tx.sale.create({
         data: {
-          total: payload.total,
-          items: payload.items, // Stored as Json
-          userId: userId
+          total: totalAmount,
+          items: payload.items,
+          userId: user.id
         }
       });
 
-      // 4. Create Financial Ledger Entry (Transaction)
-      // This increases the terminal "Sales" volume tracked in the system
+      // 3. Create Sale Transaction entry
+      const reference = `SHG-SALE-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
       const transaction = await tx.transaction.create({
         data: {
-          reference: `SHG-SALE-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          reference,
           type: "SALE" as TransactionType,
-          amount: payload.total,
-          paymentMethod: "TERMINAL_RETAIL",
-          status: "SUCCESS",
-          userId: userId // Linked for audit trails
+          amount: totalAmount,
+          paymentMethod: payload.paymentMethod || "TERMINAL_RETAIL",
+          status: TransactionStatus.SUCCESS,
+          recipientDetail: `Terminal Retail (${payload.items.length} items)`,
+          userId: user.id
         }
       });
 
-      // 5. System Audit Log for Security
+      // 4. Atomically credit Cashier Vault Balance with received revenue
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: { balance: { increment: totalAmount } },
+        select: { balance: true }
+      });
+
+      // 5. Audit Log
       await tx.systemLog.create({
         data: {
           action: "RETAIL_SALE_COMPLETED",
-          userId,
-          details: `Sale ID: ${sale.id} | Items: ${payload.items.length} | Total: ${payload.total}`
+          userId: user.id,
+          details: `Sale Ref: ${reference} | Total: ₦${totalAmount}`
         }
       });
 
-      // 6. Real-time broadcast to all connected terminals
-      const broadcastPayload = { sale, transaction };
-      io.emit("sale:new", broadcastPayload);
-      io.emit("transaction:new", transaction);
+      const broadcastPayload = {
+        sale,
+        transaction,
+        newBalance: updatedUser.balance
+      };
+
+      try {
+        const io = getIO();
+        io.to(`user:${userId}`).emit("balance:update", updatedUser.balance);
+        io.to(`user:${userId}`).emit("transaction:new", transaction);
+        io.emit("sale:new", broadcastPayload);
+      } catch (_) {}
 
       return broadcastPayload;
     }, {
-      isolationLevel: "Serializable" // Highest level of concurrency protection
+      isolationLevel: "Serializable"
     });
   }
 }
