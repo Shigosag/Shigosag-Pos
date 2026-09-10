@@ -1,3 +1,7 @@
+// ================================================================================
+// FILE: frontend/src/layouts/MainLayout.tsx
+// ================================================================================
+
 import React, { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -58,7 +62,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         />
       )}
 
-      {/* Desktop Sidebar */}
+      {/* 1. DESKTOP / ROTATED PHONE SIDEBAR */}
       <aside className={`hidden md:flex bg-indigo-600 text-white flex-col transition-all duration-300 shadow-2xl z-20 ${open ? "w-64 p-5" : "w-20 p-4"}`}>
         <button 
           onClick={() => setOpen(!open)} 
@@ -109,16 +113,66 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* 2. MOBILE OVERLAY DRAWER (Slides over cleanly without pushing content down) */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div 
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="relative w-64 bg-indigo-600 text-white h-full p-6 flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <ShoppingCart size={22} className="text-white" />
+                </div>
+                <span className="font-black text-lg">Shigosag POS</span>
+              </div>
+              <button 
+                onClick={() => setMobileMenuOpen(false)} 
+                className="p-1 rounded-lg hover:bg-indigo-500 text-white"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <nav className="flex flex-col gap-2">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 p-3 rounded-2xl font-bold text-sm transition-all ${
+                    location.pathname === item.path ? "bg-white text-indigo-600 shadow-md" : "text-white hover:bg-indigo-500"
+                  }`}
+                >
+                  <item.icon size={20} /> {item.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="mt-auto pt-4 border-t border-white/10">
+              <button 
+                onClick={() => { logout(); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 p-3 text-red-100 hover:bg-red-500 hover:text-white rounded-2xl font-bold text-sm transition-all"
+              >
+                <LogOut size={20} /> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. MAIN HEADER & CONTENT */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm p-4 px-6 md:px-8 flex justify-between items-center z-10 border-b border-gray-100">
           <div className="flex items-center gap-3">
              <button 
-               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-               className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100"
-               aria-label="Toggle Mobile Menu"
+               onClick={() => setMobileMenuOpen(true)}
+               className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 active:scale-95 transition"
+               aria-label="Open Navigation"
              >
-               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+               <Menu size={24} />
              </button>
              <div className="w-10 h-10 bg-indigo-600 text-white rounded-2xl flex items-center justify-center font-black shadow-lg shadow-indigo-100">
                 {user?.name?.charAt(0) || "U"}
@@ -138,28 +192,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-indigo-600 text-white p-6 space-y-3 z-30 shadow-2xl animate-in slide-in-from-top-4">
-            {menuItems.map((item) => (
-              <Link
-                key={item.label}
-                to={item.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 p-3 rounded-2xl font-bold text-sm ${location.pathname === item.path ? "bg-white text-indigo-600" : "text-white hover:bg-indigo-500"}`}
-              >
-                <item.icon size={20} /> {item.label}
-              </Link>
-            ))}
-            <button 
-              onClick={() => { logout(); setMobileMenuOpen(false); }}
-              className="w-full flex items-center gap-3 p-3 text-red-200 hover:bg-red-500 hover:text-white rounded-2xl font-bold text-sm"
-            >
-              <LogOut size={20} /> Logout
-            </button>
-          </div>
-        )}
 
         <main className="p-4 md:p-6 overflow-auto flex-1 bg-[#f8fafc]">
           {children}
