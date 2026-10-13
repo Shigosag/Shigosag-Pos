@@ -64,6 +64,8 @@ https://shigosag-pos-juwyi.faable.link/
 
 ## 📂 Project Structure
 
+[![Architecture Diagram](https://img.shields.io/badge/View-GitDiagram-blue)](https://gitdiagram.com/Shigosag/Shigosag-Pos)
+
 ```txt
 Shigosag-Pos/
 │
